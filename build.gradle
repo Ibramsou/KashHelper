@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'signing'
+}
+
+group = 'fr.ibrakash.helper'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.papermc.io/repository/maven-public/"
+    }
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+    compileOnly 'org.spongepowered:configurate-core:4.2.0'
+    compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
+    compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
+    compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
+}
+
+publishing {
+    publications {
+        jar(MavenPublication) {
+            from components.java
+            groupId = 'xyz.imrine'
+            artifactId = 'Kash-Helper'
+            version = project.version
+
+            pom {
+                name = 'KashHelper'
+                description = 'Kash Helper is an helper library'
+                url = 'https://github.com/Ibramsou/KashHelper'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Bramsou'
+                        name = 'Ibrahim'
+                        email = 'braimsou@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git:github.com/Ibramsou/KashHelper.git'
+                    developerConnection = 'scm:git:ssh://github.com:Ibramsou/KashHelper.git'
+                    url = 'https://github.com/Ibramsou/KashHelper'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "Central"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+            credentials {
+                username = sonatypeUsername
+                password = sonatypePassword
+            }
+        }
+    }
+}
+
+signing {
+    def key = file(findProperty("signingKeyFile") as String).text
+    def pass = findProperty("signingPassword") as String
+    useInMemoryPgpKeys(key, pass)
+    sign publishing.publications.jar
+}
