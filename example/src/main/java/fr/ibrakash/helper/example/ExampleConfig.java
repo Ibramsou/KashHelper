@@ -3,7 +3,7 @@ package fr.ibrakash.helper.example;
 import fr.ibrakash.helper.configuration.ConfigurationLoaderType;
 import fr.ibrakash.helper.configuration.ConfigurationObject;
 import fr.ibrakash.helper.configuration.ConfigurationUtils;
-import fr.ibrakash.helper.item.ReplaceableItem;
+import fr.ibrakash.helper.configuration.objects.item.impl.ConfigItem;
 import fr.ibrakash.helper.utils.FileUtil;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -28,7 +28,7 @@ public class ExampleConfig extends ConfigurationObject {
             new ExampleObject(20 * 7, "example-2"),
             new ExampleObject(20 * 2, "example-3")
     );
-    private ReplaceableItem replaceableItem = new ReplaceableItem()
+    private ConfigItem configItem = new ConfigItem()
             .material(Material.DIAMOND)
             .displayName("<gold>Unique item.")
             .lore(List.of("<gray>This is %player%'s item."));
@@ -37,8 +37,8 @@ public class ExampleConfig extends ConfigurationObject {
         return intervals;
     }
 
-    public ReplaceableItem getReplaceableItem() {
-        return replaceableItem;
+    public ConfigItem getReplaceableItem() {
+        return configItem;
     }
 }
 

@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.item;
+package fr.ibrakash.helper.configuration.objects.item;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 @ConfigSerializable
-public class ItemModelComponents {
+public  class ItemModelComponents {
 
     private List<Float> floats = Collections.emptyList();
     private List<String> strings = Collections.emptyList();

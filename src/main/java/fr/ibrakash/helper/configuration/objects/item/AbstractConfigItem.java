@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.item;
+package fr.ibrakash.helper.configuration.objects.item;
 
 import fr.ibrakash.helper.utils.MaterialUtil;
 import fr.ibrakash.helper.utils.TextUtil;
@@ -6,66 +6,20 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-@ConfigSerializable
-public class ReplaceableItem {
+public class AbstractConfigItem {
 
     // TODO: Add custom item parser (ItemsAdder, Oraxen etc.)
     //private String customId = "";
-    private String material = Material.PAPER.name();
-    private int amount = 1;
-    private boolean unbreakable = false;
-    private String displayName = "";
-    private List<String> lore = new ArrayList<>();
-    private ItemModelComponents modelComponents = new ItemModelComponents();
-
-    public ReplaceableItem() {}
-
-    public ReplaceableItem material(Material material) {
-        this.material = material.name();
-        return this;
-    }
-
-    public ReplaceableItem amount(int amount) {
-        this.amount = amount;
-        return this;
-    }
-
-    public ReplaceableItem unbreakable(boolean unbreakable) {
-        this.unbreakable = unbreakable;
-        return this;
-    }
-
-    public ReplaceableItem displayName(String displayName) {
-        this.displayName = displayName;
-        return this;
-    }
-
-    public ReplaceableItem lore(List<String> lore) {
-        this.lore = lore;
-        return this;
-    }
-
-    public ReplaceableItem modelDataFloats(Float... floats) {
-        this.modelComponents.setFloats(Arrays.asList(floats));
-        return this;
-    }
-
-    public ReplaceableItem modelDataStrings(String... strings) {
-        this.modelComponents.setStrings(Arrays.asList(strings));
-        return this;
-    }
-
-    public ReplaceableItem modelDataFlags(Boolean... flags) {
-        this.modelComponents.setFlags(Arrays.asList(flags));
-        return this;
-    }
+    protected String material = Material.PAPER.name();
+    protected int amount = 1;
+    protected boolean unbreakable = false;
+    protected String displayName = "";
+    protected List<String> lore = new ArrayList<>();
+    protected ItemModelComponents modelComponents = new ItemModelComponents();
 
     @SuppressWarnings("UnstableApiUsage")
     public ItemStack build(Object... replacers) {
@@ -92,5 +46,29 @@ public class ReplaceableItem {
 
         itemStack.setItemMeta(meta);
         return itemStack;
+    }
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public boolean isUnbreakable() {
+        return unbreakable;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public List<String> getLore() {
+        return lore;
+    }
+
+    public ItemModelComponents getModelComponents() {
+        return modelComponents;
     }
 }
