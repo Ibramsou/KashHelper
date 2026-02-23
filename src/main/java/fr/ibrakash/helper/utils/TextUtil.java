@@ -35,4 +35,14 @@ public class TextUtil {
     public static Component replacedComponent(String input, Object... replacers) {
         return MiniMessage.miniMessage().deserialize(replaced(input, replacers));
     }
+
+    public static Component replacedItemComponent(String input, Object... replacers) {
+        return replacedComponent("<italic:false>" + input, replacers);
+    }
+
+    public static List<Component> replacedItemComponents(List<String> input, Object... replacers) {
+        List<Component> results = new ArrayList<>();
+        input.forEach(s -> results.add(replacedItemComponent(s, replacers)));
+        return results;
+    }
 }

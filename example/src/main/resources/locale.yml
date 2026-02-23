@@ -1,0 +1,9 @@
+example-1: "<red>Default message"
+example-2:
+  message: "<gray>Action Bar message"
+  action-bar: "<green>Hello!"
+example-3:
+  message: "<gray>Title message"
+  title:
+    title: "<white>White title"
+    subtitle: "<green>Green subtitle"

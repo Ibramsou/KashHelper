@@ -2,6 +2,7 @@ package fr.ibrakash.helper.configuration.objects;
 
 import fr.ibrakash.helper.utils.TextUtil;
 import net.kyori.adventure.title.Title;
+import net.kyori.adventure.util.Ticks;
 import org.bukkit.entity.Player;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -13,6 +14,10 @@ public class ConfigTitle {
     private int fadeInTicks = 10;
     private int stayTicks = 70;
     private int fadeOutTicks = 20;
+
+    public ConfigTitle() {
+        this("Not configured", "Not configured");
+    }
 
     public ConfigTitle(String title, String subtitle) {
         this.title = title;
@@ -38,7 +43,7 @@ public class ConfigTitle {
         Title title = Title.title(
                 TextUtil.replacedComponent(this.title, replacers),
                 TextUtil.replacedComponent(this.subtitle, replacers),
-                fadeInTicks, stayTicks, fadeOutTicks);
+                Title.Times.times(Ticks.duration(fadeInTicks), Ticks.duration(stayTicks), Ticks.duration(fadeOutTicks)));
         player.showTitle(title);
     }
 }

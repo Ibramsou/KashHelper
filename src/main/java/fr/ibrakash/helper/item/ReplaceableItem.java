@@ -10,6 +10,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @ConfigSerializable
@@ -18,7 +19,7 @@ public class ReplaceableItem {
     // TODO: Add custom item parser (ItemsAdder, Oraxen etc.)
     //private String customId = "";
     private String material = Material.PAPER.name();
-    private int amount = 0;
+    private int amount = 1;
     private boolean unbreakable = false;
     private String displayName = "";
     private List<String> lore = new ArrayList<>();
@@ -69,15 +70,15 @@ public class ReplaceableItem {
     @SuppressWarnings("UnstableApiUsage")
     public ItemStack build(Object... replacers) {
         ItemStack itemStack = new ItemStack(MaterialUtil.parseOrThrow(this.material));
-        itemStack.setAmount(this.amount);
+        if (this.amount == 0) throw new IllegalArgumentException("ItemStack amount must be over 0");
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(this.unbreakable);
         if (this.displayName != null && !displayName.isEmpty()) {
-            meta.displayName(TextUtil.replacedComponent(this.displayName, replacers));
+            meta.displayName(TextUtil.replacedItemComponent(this.displayName, replacers));
         }
 
         if (!this.lore.isEmpty()) {
-            meta.lore(TextUtil.replacedComponents(this.lore, replacers));
+            meta.lore(TextUtil.replacedItemComponents(this.lore, replacers));
         }
 
         // TODO: Add a wrapper for legacy versions

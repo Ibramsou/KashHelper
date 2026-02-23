@@ -1,6 +1,8 @@
 package fr.ibrakash.helper.configuration;
 
+import fr.ibrakash.helper.configuration.serialization.SoundSerializer;
 import fr.ibrakash.helper.configuration.serialization.WorldSerializer;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -23,6 +25,7 @@ public class ConfigurationUtils {
     private static final Map<Class<?>, ConfigurationMapper<?>> UNIQUE_MAPPERS = new HashMap<>();
     public static final Consumer<TypeSerializerCollection.Builder> BUKKIT_SERIALIZERS = builder -> {
         builder.register(World.class, WorldSerializer.get());
+        builder.register(Sound.class, SoundSerializer.get());
         builder.registerAnnotatedObjects(ObjectMapper.factory());
     };
 
@@ -56,6 +59,10 @@ public class ConfigurationUtils {
             boolean changed = false;
             if (resourceChanged) {
                 changed = ConfigurationResourceUtils.mergeMissingOnly(userNode, snapshot.node());
+                if (!hashFile.toFile().exists()) {
+                    hashFile.toFile().getParentFile().mkdirs();
+                    hashFile.toFile().createNewFile();
+                }
                 // Save hash for next time
                 writeString(hashFile, snapshot.sha256());
             }

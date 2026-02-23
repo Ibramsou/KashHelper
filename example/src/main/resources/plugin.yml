@@ -1,0 +1,10 @@
+main: fr.ibrakash.helper.example.ExamplePlugin
+author: Bramsou
+version: 1.0.0
+api-version: 1.21
+name: Example
+libraries:
+  - org.spongepowered:configurate-core:4.2.0
+  - org.spongepowered:configurate-yaml:4.2.0
+  - org.spongepowered:configurate-hocon:4.2.0
+  - xyz.imrine:Kash-Helper:1.0.0

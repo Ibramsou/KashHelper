@@ -38,7 +38,7 @@ public abstract class ConfigurationLocale {
     }
 
     public Component serialized(String path, Object... replacers) {
-        return TextUtil.replacedComponent(this.get(path).getMessage(), replacers);
+        return this.get(path).serialized(replacers);
     }
 
     public ConfigMessage get(String path) {

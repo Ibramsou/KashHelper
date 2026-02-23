@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.configuration.objects;
 
 import fr.ibrakash.helper.utils.TextUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -13,6 +14,10 @@ public class ConfigMessage {
     private ConfigSound sound;
     private ConfigTitle title;
     private String actionBar;
+
+    public ConfigMessage() {
+        this("Not configured");
+    }
 
     public ConfigMessage(String message) {
         this.message = message;
@@ -69,6 +74,10 @@ public class ConfigMessage {
     private void sendTitle(Player player, Object... replacers) {
         if (this.title == null) return;
         this.title.send(player, replacers);
+    }
+
+    public Component serialized(Object... replacers) {
+        return TextUtil.replacedComponent(this.message, replacers);
     }
 
     public String getMessage(Object... replacers) {
