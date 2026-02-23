@@ -1,19 +1,17 @@
 plugins {
     id 'java'
-    id 'maven-publish'
+    id 'java-library'
+    id "com.vanniktech.maven.publish" version "0.36.0"
     id 'signing'
 }
 
 group = 'fr.ibrakash.helper'
-version = '1.0.0'
+version = '1.0.1'
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-
-    withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
@@ -31,54 +29,48 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
 }
 
-publishing {
-    publications {
-        jar(MavenPublication) {
-            from components.java
-            groupId = 'xyz.imrine'
-            artifactId = 'Kash-Helper'
-            version = project.version
+mavenPublishing {
+    publishToMavenCentral(true)
 
-            pom {
-                name = 'KashHelper'
-                description = 'Kash Helper is an helper library'
-                url = 'https://github.com/Ibramsou/KashHelper'
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'Bramsou'
-                        name = 'Ibrahim'
-                        email = 'braimsou@gmail.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:git:github.com/Ibramsou/KashHelper.git'
-                    developerConnection = 'scm:git:ssh://github.com:Ibramsou/KashHelper.git'
-                    url = 'https://github.com/Ibramsou/KashHelper'
-                }
+    coordinates("xyz.imrine", "Kash-Helper", version.toString())
+
+    pom {
+        name.set("KashHelper")
+        description.set("Kash Helper is an helper library")
+        url.set("https://github.com/Ibramsou/KashHelper")
+
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
-    }
-    repositories {
-        maven {
-            name = "Central"
-            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-            credentials {
-                username = sonatypeUsername
-                password = sonatypePassword
+
+        developers {
+            developer {
+                id.set("Bramsou")
+                name.set("Ibrahim")
+                email.set("braimsou@gmail.com")
             }
+        }
+
+        scm {
+            url.set("https://github.com/Ibramsou/KashHelper")
+            connection.set("scm:git:git://github.com/Ibramsou/KashHelper.git")
+            developerConnection.set("scm:git:ssh://github.com/Ibramsou/KashHelper.git")
         }
     }
 }
 
+def signingKeyFile = findProperty("signingInMemoryKeyFile")?.toString()
+def signingPassword = findProperty("signingInMemoryKeyPassword")?.toString()
+
 signing {
-    def key = file(findProperty("signingKeyFile") as String).text
-    def pass = findProperty("signingPassword") as String
-    useInMemoryPgpKeys(key, pass)
-    sign publishing.publications.jar
+    def keyText = file(signingKeyFile).text
+    useInMemoryPgpKeys(keyText, signingPassword)
+    sign(publishing.publications)
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
 }
