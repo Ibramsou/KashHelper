@@ -3,17 +3,20 @@ package fr.ibrakash.helper.configuration.objects;
 import fr.ibrakash.helper.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+
+import java.util.Optional;
 
 @ConfigSerializable
 public class ConfigMessage {
 
     private String message;
-    private ConfigSound sound;
-    private ConfigTitle title;
-    private String actionBar;
+    private Optional<ConfigSound> sound = Optional.empty();
+    private Optional<ConfigTitle> title = Optional.empty();
+    private Optional<String> actionBar = Optional.empty();
 
     public ConfigMessage() {
         this("Not configured");
@@ -24,17 +27,17 @@ public class ConfigMessage {
     }
 
     public ConfigMessage sound(ConfigSound sound) {
-        this.sound = sound;
+        this.sound = Optional.of(sound);
         return this;
     }
 
     public ConfigMessage title(ConfigTitle title) {
-        this.title = title;
+        this.title = Optional.of(title);
         return this;
     }
 
     public ConfigMessage actionBar(String actionBar) {
-        this.actionBar = actionBar;
+        this.actionBar = Optional.of(actionBar);
         return this;
     }
 
@@ -62,18 +65,15 @@ public class ConfigMessage {
     }
 
     private void sendActionBar(Player player, Object... replacers) {
-        if (this.actionBar == null) return;
-        player.sendActionBar(TextUtil.replacedComponent(this.actionBar, replacers));
+        this.actionBar.ifPresent(string -> player.sendActionBar(TextUtil.replacedComponent(string, replacers)));
     }
 
     private void playSound(Player player) {
-        if (this.sound == null) return;
-        this.sound.play(player);
+        this.sound.ifPresent(sound -> sound.play(player));
     }
 
     private void sendTitle(Player player, Object... replacers) {
-        if (this.title == null) return;
-        this.title.send(player, replacers);
+        this.title.ifPresent(title -> title.send(player, replacers));
     }
 
     public Component serialized(Object... replacers) {
@@ -89,14 +89,14 @@ public class ConfigMessage {
     }
 
     public ConfigSound getSound() {
-        return sound;
+        return sound.orElse(null);
     }
 
     public ConfigTitle getTitle() {
-        return title;
+        return title.orElse(null);
     }
 
     public String getActionBar() {
-        return actionBar;
+        return actionBar.orElse(null);
     }
 }
