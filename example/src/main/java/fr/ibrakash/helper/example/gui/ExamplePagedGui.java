@@ -1,6 +1,6 @@
 package fr.ibrakash.helper.example.gui;
 
-import fr.ibrakash.helper.example.ExampleGuiConfig;
+import fr.ibrakash.helper.example.ExampleMenus;
 import fr.ibrakash.helper.gui.invui.wrapper.PagedInvUiWrapper;
 import fr.ibrakash.helper.utils.TextUtil;
 import org.bukkit.Material;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
 
     public ExamplePagedGui() {
-        super(ExampleGuiConfig.get().getPagedGui());
+        super(ExampleMenus.get().getPaged("paged-gui"));
     }
 
     @Override

@@ -1,0 +1,100 @@
+paged-gui:
+  paged-item:
+    ingredient-id: X
+    actions:
+      - switch_item:I
+    material: '%material_name%'
+    amount: 1
+    unbreakable: false
+    display-name: <gold>%material_name%
+    lore:
+      - '<gray>Item #page_item_number'
+    model-components:
+      floats: []
+      strings: []
+      flags: []
+  title: <gray>Example Title
+  shape:
+    - '# # # # # # # # #'
+    - '# X X X X X X X #'
+    - '# X X X X X X X #'
+    - '# # P # # # N # #'
+  items:
+    - ingredient-id: '#'
+      actions: []
+      material: GRAY_STAINED_GLASS_PANE
+      amount: 1
+      unbreakable: false
+      display-name: ' '
+      lore: []
+      model-components:
+        floats: []
+        strings: []
+        flags: []
+    - ingredient-id: P
+      actions:
+        - previous_page
+      material: PAPER
+      amount: 1
+      unbreakable: false
+      display-name: <gray>Previous Page
+      lore: []
+      model-components:
+        floats: []
+        strings: []
+        flags: []
+    - ingredient-id: N
+      actions:
+        - next_page
+      material: PAPER
+      amount: 1
+      unbreakable: false
+      display-name: <gray>Next Page
+      lore: []
+      model-components:
+        floats: []
+        strings: []
+        flags: []
+    - ingredient-id: I
+      actions:
+        - switch_item:X
+      material: DIAMOND
+      amount: 1
+      unbreakable: false
+      display-name: <gold>Revert
+      lore: []
+      model-components:
+        floats: []
+        strings: []
+        flags: []
+normal-gui:
+  title: <green>Normal Gui
+  shape:
+    - '# # # # # # # # #'
+    - '# . . . X . . . #'
+    - '# # # # # # # # #'
+  items:
+    - ingredient-id: X
+      actions:
+        - click_me
+      material: PAPER
+      amount: 1
+      unbreakable: false
+      display-name: <red>Click Me
+      lore:
+        - <green>Don't click me
+      model-components:
+        floats: []
+        strings: []
+        flags: []
+    - ingredient-id: '#'
+      actions: []
+      material: GRAY_STAINED_GLASS_PANE
+      amount: 1
+      unbreakable: false
+      display-name: ' '
+      lore: []
+      model-components:
+        floats: []
+        strings: []
+        flags: []
