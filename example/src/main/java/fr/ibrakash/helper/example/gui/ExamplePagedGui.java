@@ -3,6 +3,7 @@ package fr.ibrakash.helper.example.gui;
 import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
 import fr.ibrakash.helper.example.ExampleGuiConfig;
 import fr.ibrakash.helper.gui.invui.wrapper.PagedInvUiWrapper;
+import fr.ibrakash.helper.utils.TextUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -20,7 +21,9 @@ public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
     @Override
     public List<Material> getPagedObjects() {
         return Stream.of(Material.values())
-                .filter(material -> !material.isLegacy() && material.isBlock())
+                .filter(material -> !material.isLegacy())
+                .filter(Material::isBlock)
+                .filter(material -> !material.isAir())
                 .toList();
     }
 
@@ -31,7 +34,7 @@ public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
 
     @Override
     public void clickPagedObject(Player issuer, Material object, ClickType type, InventoryClickEvent event) {
-
+        issuer.sendMessage(TextUtil.replacedComponent("<green>Clicked on: <gray>%material%", "%material%", object.name()));
     }
 
     @Override

@@ -27,12 +27,12 @@ public class PagedGuiConfig extends AbstractGuiConfig {
                         .material(Material.GRAY_STAINED_GLASS_PANE)
                         .displayName(" "),
                 new ConfigGuiItem()
-                        .ingredientCharacter('P')
+                        .ingredientCharacter('N')
                         .material(Material.PAPER)
                         .displayName("<gray>Next Page")
                         .actions("next_page"),
                 new ConfigGuiItem()
-                        .ingredientCharacter('N')
+                        .ingredientCharacter('P')
                         .material(Material.PAPER)
                         .displayName("<gray>Previous Page")
                         .actions("previous_page")

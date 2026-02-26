@@ -29,6 +29,7 @@ public class ExampleGuiConfig extends ConfigurationObject {
             .pagedItem(
                     new ConfigGuiItem()
                             .ingredientCharacter('X')
+                            .material("%material_name%")
                             .displayName("<gold>%material_name%")
                             .lore(List.of("<gray>Item #page_item_number"))
             );
