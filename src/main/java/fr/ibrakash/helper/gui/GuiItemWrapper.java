@@ -1,10 +1,14 @@
 package fr.ibrakash.helper.gui;
 
+import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
+
 public interface GuiItemWrapper {
 
-    void setReplacedItemId(char ingredientId);
+    ConfigGuiItem getDefaultItem();
 
-    char getReplacedItemId();
+    void replaceItem(ConfigGuiItem item);
+
+    ConfigGuiItem getConfigItem();
 
     void updateItem();
 }

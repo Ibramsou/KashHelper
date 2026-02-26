@@ -78,4 +78,12 @@ public class ConfigGuiItem extends AbstractConfigItem {
     public List<String> getActions() {
         return actions;
     }
+
+    public ConfigGuiItem clone() {
+        ConfigGuiItem guiItem = new ConfigGuiItem();
+        super.copyValues(this, guiItem);
+        guiItem.ingredientId = ingredientId;
+        guiItem.actions = actions;
+        return guiItem;
+    }
 }

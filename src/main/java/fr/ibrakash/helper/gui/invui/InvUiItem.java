@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.gui.invui;
 
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
+import fr.ibrakash.helper.configuration.objects.item.ConfigItem;
 import fr.ibrakash.helper.gui.GuiActionConsumer;
 import fr.ibrakash.helper.gui.GuiItemWrapper;
 import fr.ibrakash.helper.gui.GuiWrapper;
@@ -17,25 +18,24 @@ import java.util.List;
 public class InvUiItem extends AbstractItem implements GuiItemWrapper {
 
     private final GuiWrapper<?, ?, ?> wrapper;
-    private final ConfigGuiItem item;
-    private char switchedId;
+    private final ConfigGuiItem defaultItem;
+    private ConfigGuiItem item;
     private GuiActionConsumer defaultConsumer;
     private List<Object> customReplacers;
 
     public InvUiItem(GuiWrapper<?, ?, ?> wrapper, ConfigGuiItem item) {
         this.wrapper = wrapper;
         this.item = item;
+        this.defaultItem = item;
     }
 
     @Override
     public ItemProvider getItemProvider() {
-        return this.wrapper.getSwitchedItem(this)
-                .map(ItemBuilder::new)
-                .orElse(new ItemBuilder(
-                        this.customReplacers == null ?
-                                this.item.build(this.wrapper.getReplacers()) :
-                                this.item.build(this.customReplacers)
-                ));
+        return new ItemBuilder(
+                this.customReplacers == null ?
+                        this.item.build(this.wrapper.getReplacers()) :
+                        this.item.build(this.customReplacers)
+        );
     }
 
     @Override
@@ -43,17 +43,24 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
         if (this.defaultConsumer != null) {
             this.defaultConsumer.doAction(player, event.getClick(), event, this);
         }
+        ConfigGuiItem oldItem = this.item;
         this.wrapper.doActions(this.item, player, event, this);
+        if (this.item != oldItem) this.updateItem();
     }
 
     @Override
-    public void setReplacedItemId(char ingredientId) {
-        this.switchedId = ingredientId;
+    public ConfigGuiItem getDefaultItem() {
+        return this.defaultItem;
     }
 
     @Override
-    public char getReplacedItemId() {
-        return this.switchedId;
+    public void replaceItem(ConfigGuiItem item) {
+        this.item = item;
+    }
+
+    @Override
+    public ConfigGuiItem getConfigItem() {
+        return this.item;
     }
 
     @Override

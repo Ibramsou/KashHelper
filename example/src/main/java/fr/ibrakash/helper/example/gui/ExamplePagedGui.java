@@ -1,6 +1,5 @@
 package fr.ibrakash.helper.example.gui;
 
-import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
 import fr.ibrakash.helper.example.ExampleGuiConfig;
 import fr.ibrakash.helper.gui.invui.wrapper.PagedInvUiWrapper;
 import fr.ibrakash.helper.utils.TextUtil;

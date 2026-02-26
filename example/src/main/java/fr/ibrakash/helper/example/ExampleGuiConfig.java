@@ -6,6 +6,7 @@ import fr.ibrakash.helper.configuration.ConfigurationUtils;
 import fr.ibrakash.helper.configuration.objects.gui.GuiConfig;
 import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
+import fr.ibrakash.helper.configuration.objects.item.ConfigItems;
 import fr.ibrakash.helper.utils.FileUtil;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -32,6 +33,16 @@ public class ExampleGuiConfig extends ConfigurationObject {
                             .material("%material_name%")
                             .displayName("<gold>%material_name%")
                             .lore(List.of("<gray>Item #page_item_number"))
+                            .actions("switch_item:I")
+            ).items(
+                    ConfigItems.GLASS_PANE_DECORATION,
+                    ConfigItems.PREVIOUS_PAGE,
+                    ConfigItems.NEXT_PAGE,
+                    new ConfigGuiItem()
+                            .ingredientCharacter('I')
+                            .material(Material.DIAMOND)
+                            .displayName("<gold>Revert")
+                            .actions("switch_item:X")
             );
 
     private GuiConfig normalGui = new GuiConfig()

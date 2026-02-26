@@ -2,9 +2,10 @@ package fr.ibrakash.helper.configuration.objects.gui;
 
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
-import org.bukkit.Material;
+import fr.ibrakash.helper.configuration.objects.item.ConfigItems;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
+import java.util.Arrays;
 import java.util.List;
 
 @ConfigSerializable
@@ -15,27 +16,11 @@ public class PagedGuiConfig extends AbstractGuiConfig {
             .displayName("<gray>Example Paged Item");
 
     public PagedGuiConfig() {
-        this.shape = List.of(
-                "# # # # # # # # #",
-                "# X X X X X X X #",
-                "# X X X X X X X #",
-                "# # P # # # N # #"
-        );
+        this.shape = GuiValues.PAGED_SHAPE;
         this.items = List.of(
-                new ConfigGuiItem()
-                        .ingredientCharacter('#')
-                        .material(Material.GRAY_STAINED_GLASS_PANE)
-                        .displayName(" "),
-                new ConfigGuiItem()
-                        .ingredientCharacter('N')
-                        .material(Material.PAPER)
-                        .displayName("<gray>Next Page")
-                        .actions("next_page"),
-                new ConfigGuiItem()
-                        .ingredientCharacter('P')
-                        .material(Material.PAPER)
-                        .displayName("<gray>Previous Page")
-                        .actions("previous_page")
+                ConfigItems.GLASS_PANE_DECORATION,
+                ConfigItems.PREVIOUS_PAGE,
+                ConfigItems.NEXT_PAGE
         );
     }
 
@@ -55,7 +40,11 @@ public class PagedGuiConfig extends AbstractGuiConfig {
     }
 
     public PagedGuiConfig items(ConfigGuiItem... items) {
-        this.items = List.of(items);
+        return this.items(Arrays.asList(items));
+    }
+
+    public PagedGuiConfig items(List<ConfigGuiItem> items) {
+        this.items = items;
         return this;
     }
 

@@ -51,4 +51,11 @@ public class ConfigItem extends AbstractConfigItem {
         this.modelComponents.setFlags(Arrays.asList(flags));
         return this;
     }
+
+    @Override
+    public ConfigItem clone() {
+        ConfigItem guiItem = new ConfigItem();
+        super.copyValues(this, guiItem);
+        return guiItem;
+    }
 }

@@ -1,5 +1,6 @@
 package fr.ibrakash.helper.configuration.objects;
 
+import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.utils.ItemModelComponents;
 import fr.ibrakash.helper.utils.MaterialUtil;
 import fr.ibrakash.helper.utils.PlayerProfileCache;
@@ -98,5 +99,14 @@ public class AbstractConfigItem {
 
     public ItemModelComponents getModelComponents() {
         return modelComponents;
+    }
+
+    protected void copyValues(AbstractConfigItem from, AbstractConfigItem to) {
+        to.material = from.material;
+        to.amount = from.amount;
+        to.unbreakable = from.unbreakable;
+        to.displayName = from.displayName;
+        to.lore = from.lore;
+        to.modelComponents = from.modelComponents;
     }
 }

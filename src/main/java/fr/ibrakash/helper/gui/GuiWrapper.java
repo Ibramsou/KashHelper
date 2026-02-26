@@ -5,13 +5,11 @@ import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
 public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
 
-    public static final Map<String, Character> ACTION_SWITCH_CACHE = new HashMap<>();
 
     protected final C config;
     protected final Map<String, GuiAction> actions = new HashMap<>();
@@ -26,7 +24,11 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
             this.ingredients.put(pagedGuiConfig.getPagedItem().getIngredientId(), pagedGuiConfig.getPagedItem());
         }
         this.config.getItems().forEach(item -> this.ingredients.put(item.getIngredientId(), item));
-        this.ingredients.keySet().forEach(character -> ACTION_SWITCH_CACHE.putIfAbsent("switch_item:" + character, character));
+        this.ingredients.forEach((character, item) -> {
+            String key = "switch_item:" + character;
+            this.setAction(key, (issuer, type, event, wrapper) ->
+                    wrapper.replaceItem(character == wrapper.getDefaultItem().getIngredientId() ? wrapper.getDefaultItem() : item));
+        });
     }
 
     public void setAction(String key, GuiActionConsumer consumer) {
@@ -47,16 +49,6 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
 
     public void doAction(String key, Player player, InventoryClickEvent event, GuiItemWrapper wrapper) {
         this.getAction(key).ifPresent(guiAction -> guiAction.doAction(player, event, wrapper));
-    }
-
-    public Optional<ItemStack> getSwitchedItem(GuiItemWrapper wrapper) {
-        if (wrapper.getReplacedItemId() == 0) {
-            return Optional.empty();
-        }
-
-        ConfigGuiItem switchedItem = this.ingredients.get(wrapper.getReplacedItemId());
-
-        return Optional.ofNullable(switchedItem.build(this.getReplacers()));
     }
 
     public void buildGui() {
