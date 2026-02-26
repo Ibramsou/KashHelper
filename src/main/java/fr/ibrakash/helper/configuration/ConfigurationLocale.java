@@ -1,8 +1,7 @@
 package fr.ibrakash.helper.configuration;
 
-import fr.ibrakash.helper.configuration.objects.ConfigMessage;
+import fr.ibrakash.helper.configuration.objects.display.ConfigMessage;
 import fr.ibrakash.helper.utils.FileUtil;
-import fr.ibrakash.helper.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.command.CommandSender;
@@ -13,6 +12,7 @@ import org.spongepowered.configurate.serialize.SerializationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class ConfigurationLocale {
 
@@ -48,11 +48,8 @@ public abstract class ConfigurationLocale {
             try {
                 if (node.isMap()) {
                     ConfigMessage entry = node.get(ConfigMessage.class);
-                    if (entry != null) {
-                        return entry;
-                    }
+                    return Objects.requireNonNullElseGet(entry, () -> new ConfigMessage("Not configured"));
 
-                    return new ConfigMessage("Not configured");
                 } else if (node.isList()) {
                     List<String> lines = node.getList(String.class);
                     return new ConfigMessage((lines == null || lines.isEmpty()) ? "Not configured" : StringUtils.join(lines, "\n"));

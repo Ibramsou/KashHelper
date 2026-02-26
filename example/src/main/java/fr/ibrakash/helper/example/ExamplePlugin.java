@@ -27,5 +27,7 @@ public class ExamplePlugin extends JavaPlugin {
                         player.give(ExampleConfig.get().getReplaceableItem().build("%player%", player.getName())));
             }, 0L, exampleObject.getInterval());
         });
+
+        this.getCommand("example").setExecutor(new ExampleCommand());
     }
 }

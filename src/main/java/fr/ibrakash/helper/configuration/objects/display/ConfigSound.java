@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.configuration.objects;
+package fr.ibrakash.helper.configuration.objects.display;
 
 import fr.ibrakash.helper.utils.LegacyUtil;
 import fr.ibrakash.helper.utils.Tuple;

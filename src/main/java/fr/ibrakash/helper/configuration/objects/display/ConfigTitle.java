@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.configuration.objects;
+package fr.ibrakash.helper.configuration.objects.display;
 
 import fr.ibrakash.helper.utils.TextUtil;
 import net.kyori.adventure.title.Title;

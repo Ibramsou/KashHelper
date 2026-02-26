@@ -1,5 +1,7 @@
-package fr.ibrakash.helper.configuration.objects.item;
+package fr.ibrakash.helper.configuration.objects;
 
+import dev.triumphteam.gui.guis.PaginatedGui;
+import fr.ibrakash.helper.utils.ItemModelComponents;
 import fr.ibrakash.helper.utils.MaterialUtil;
 import fr.ibrakash.helper.utils.TextUtil;
 import org.bukkit.Material;
@@ -8,6 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AbstractConfigItem {
@@ -23,10 +26,15 @@ public class AbstractConfigItem {
 
     @SuppressWarnings("UnstableApiUsage")
     public ItemStack build(Object... replacers) {
+        return build(Arrays.asList(replacers));
+    }
+
+    public ItemStack build(List<Object> replacers) {
         ItemStack itemStack = new ItemStack(MaterialUtil.parseOrThrow(this.material));
         if (this.amount == 0) throw new IllegalArgumentException("ItemStack amount must be over 0");
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(this.unbreakable);
+        PaginatedGui gui;
         if (this.displayName != null && !displayName.isEmpty()) {
             meta.displayName(TextUtil.replacedItemComponent(this.displayName, replacers));
         }

@@ -1,9 +1,8 @@
-package fr.ibrakash.helper.configuration.objects;
+package fr.ibrakash.helper.configuration.objects.display;
 
 import fr.ibrakash.helper.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -53,7 +52,7 @@ public class ConfigMessage {
 
     public void broadcast(Object... replacers) {
         Bukkit.broadcast(TextUtil.replacedComponent(this.message, replacers));
-        if (this.actionBar == null && this.title == null && this.sound == null) {
+        if (this.actionBar.isEmpty() && this.title.isEmpty() && this.sound.isEmpty()) {
             return;
         }
 

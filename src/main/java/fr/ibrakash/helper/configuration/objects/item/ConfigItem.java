@@ -1,10 +1,9 @@
-package fr.ibrakash.helper.configuration.objects.item.impl;
+package fr.ibrakash.helper.configuration.objects.item;
 
-import fr.ibrakash.helper.configuration.objects.item.AbstractConfigItem;
+import fr.ibrakash.helper.configuration.objects.AbstractConfigItem;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

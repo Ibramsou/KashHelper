@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.configuration.objects.item;
+package fr.ibrakash.helper.utils;
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 

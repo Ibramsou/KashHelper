@@ -3,7 +3,7 @@ package fr.ibrakash.helper.example;
 import fr.ibrakash.helper.configuration.ConfigurationLoaderType;
 import fr.ibrakash.helper.configuration.ConfigurationObject;
 import fr.ibrakash.helper.configuration.ConfigurationUtils;
-import fr.ibrakash.helper.configuration.objects.item.impl.ConfigItem;
+import fr.ibrakash.helper.configuration.objects.item.ConfigItem;
 import fr.ibrakash.helper.utils.FileUtil;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;

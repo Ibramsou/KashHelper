@@ -1,0 +1,75 @@
+package fr.ibrakash.helper.gui.invui.wrapper;
+
+import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
+import fr.ibrakash.helper.gui.GuiPageHandler;
+import fr.ibrakash.helper.gui.GuiPagedObject;
+import fr.ibrakash.helper.gui.invui.InvUiItem;
+import fr.ibrakash.helper.gui.invui.InvUiWrapper;
+import fr.ibrakash.helper.utils.TextUtil;
+import xyz.xenondevs.invui.gui.PagedGui;
+import xyz.xenondevs.invui.gui.structure.Markers;
+import xyz.xenondevs.invui.item.Item;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, PagedGuiConfig, PagedGui.Builder<Item>> implements GuiPageHandler<O> {
+
+    public PagedInvUiWrapper(PagedGuiConfig config) {
+        super(config);
+
+        this.setPageActions(this);
+    }
+
+    @Override
+    protected PagedGui<Item> guiFromBuilder(PagedGui.Builder<Item> builder) {
+        return builder.build();
+    }
+
+    @Override
+    protected PagedGui.Builder<Item> createBuilder() {
+        return PagedGui.items();
+    }
+
+    @Override
+    protected void additionalData(PagedGui.Builder<Item> builder) {
+        List<GuiPagedObject<O>> objects = this.loadPageObjects();
+
+        List<Item> contents = new ArrayList<>(objects.size());
+
+        for (int i = 0; i < objects.size(); i++) {
+            GuiPagedObject<O> object = objects.get(i);
+            InvUiItem item = new InvUiItem(this, this.config.getPagedItem());
+            List<Object> replacers = this.pagedParsers(object.object());
+            item.setCustomReplacers(TextUtil.addReplacers(replacers,
+                    "%page_item_index%", i,
+                    "%page_item_number%", i + 1
+            ));
+            item.setDefaultConsumer(object.consumer());
+            contents.add(item);
+        }
+
+        builder.addIngredient(this.config.getPagedItem().getIngredientId(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
+                .setContent(contents);
+    }
+
+    @Override
+    public int maxPages() {
+        return this.gui.getPageAmount();
+    }
+
+    @Override
+    public int currentPage() {
+        return this.gui.getCurrentPage() + 1;
+    }
+
+    @Override
+    public void nextPage() {
+        this.gui.goForward();
+    }
+
+    @Override
+    public void previousPage() {
+        this.gui.goBack();
+    }
+}

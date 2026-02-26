@@ -3,8 +3,11 @@ author: Bramsou
 version: 1.0.0
 api-version: 1.21
 name: Example
+commands:
+  example:
+    usage: /example
 libraries:
   - org.spongepowered:configurate-core:4.2.0
   - org.spongepowered:configurate-yaml:4.2.0
   - org.spongepowered:configurate-hocon:4.2.0
-  - xyz.imrine:Kash-Helper:1.0.3
+  - xyz.imrine:Kash-Helper:1.1.0

@@ -3,7 +3,7 @@ plugins {
     id 'java-library'
     id "com.vanniktech.maven.publish" version "0.36.0"
     id 'signing'
-    id("com.gradleup.shadow") version "9.3.1" apply false
+    id("com.gradleup.shadow") version "9.3.1" apply true
 }
 
 group = 'fr.ibrakash.helper'
@@ -12,6 +12,9 @@ version = '1.1.0'
 repositories {
     mavenCentral()
     maven { url "https://repo.papermc.io/repository/maven-public/" }
+    maven {
+        url 'https://repo.xenondevs.xyz/releases'
+    }
 }
 
 java {
@@ -26,6 +29,7 @@ dependencies {
     compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
     compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
     compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
+    implementation "xyz.xenondevs.invui:invui:1.49"
 }
 
 mavenPublishing {
