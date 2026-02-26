@@ -21,13 +21,13 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     public GuiWrapper(C config) {
         this.config = config;
         if (this.config instanceof PagedGuiConfig pagedGuiConfig) {
-            this.ingredients.put(pagedGuiConfig.getPagedItem().getIngredientId(), pagedGuiConfig.getPagedItem());
+            this.ingredients.put(pagedGuiConfig.getPagedItem().getShapeId(), pagedGuiConfig.getPagedItem());
         }
-        this.config.getItems().forEach(item -> this.ingredients.put(item.getIngredientId(), item));
+        this.config.getItems().forEach(item -> this.ingredients.put(item.getShapeId(), item));
         this.ingredients.forEach((character, item) -> {
             String key = "switch_item:" + character;
             this.setAction(key, (issuer, type, event, wrapper) ->
-                    wrapper.replaceItem(character == wrapper.getDefaultItem().getIngredientId() ? wrapper.getDefaultItem() : item));
+                    wrapper.replaceItem(character == wrapper.getDefaultItem().getShapeId() ? wrapper.getDefaultItem() : item));
         });
     }
 

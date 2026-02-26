@@ -1,37 +1,39 @@
 paged-gui:
-  paged-item:
-    ingredient-id: X
-    actions:
-      - switch_item:I
-    material: '%material_name%'
-    amount: 1
-    unbreakable: false
-    display-name: <gold>%material_name%
-    lore:
-      - '<gray>Item #page_item_number'
-    model-components:
-      floats: []
-      strings: []
-      flags: []
+  # Paged Menu Title
   title: <gray>Example Title
+  # Menu Shape
   shape:
     - '# # # # # # # # #'
     - '# X X X X X X X #'
     - '# X X X X X X X #'
     - '# # P # # # N # #'
+  # Paged Item Configuration
+  paged-item:
+    shape-id: X # Character ID matching the shape (every 'X' from the shape will be filled by this item).
+    actions:
+      - switch_item:I # Replace the clicked item by another from the item list (I in this case).
+    material: '%material_name%' # Parsed by the code
+    amount: 1
+    unbreakable: false
+    display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
+    lore:
+      - '<gray>Item #page_item_number'
+    # Custom Model Data Components For Custom Models
+    model-components:
+      floats: []
+      strings: []
+      flags: []
   items:
-    - ingredient-id: '#'
+    # Decoration Item
+    - shape-id: '#' # Ingredient matching the shape
       actions: []
       material: GRAY_STAINED_GLASS_PANE
       amount: 1
       unbreakable: false
       display-name: ' '
       lore: []
-      model-components:
-        floats: []
-        strings: []
-        flags: []
-    - ingredient-id: P
+    # Previous Page Item
+    - shape-id: P
       actions:
         - previous_page
       material: PAPER
@@ -39,11 +41,8 @@ paged-gui:
       unbreakable: false
       display-name: <gray>Previous Page
       lore: []
-      model-components:
-        floats: []
-        strings: []
-        flags: []
-    - ingredient-id: N
+    # Next Page Item
+    - shape-id: N
       actions:
         - next_page
       material: PAPER
@@ -51,22 +50,12 @@ paged-gui:
       unbreakable: false
       display-name: <gray>Next Page
       lore: []
-      model-components:
-        floats: []
-        strings: []
-        flags: []
-    - ingredient-id: I
-      actions:
-        - switch_item:X
+    # Example of an item switch
+    - shape-id: I
+      display-name: "<green>Get Item Back"
       material: DIAMOND
-      amount: 1
-      unbreakable: false
-      display-name: <gold>Revert
-      lore: []
-      model-components:
-        floats: []
-        strings: []
-        flags: []
+      actions:
+        - switch_item:X # Will get back to the clicked paginated item
 normal-gui:
   title: <green>Normal Gui
   shape:
@@ -74,7 +63,7 @@ normal-gui:
     - '# . . . X . . . #'
     - '# # # # # # # # #'
   items:
-    - ingredient-id: X
+    - shape-id: X
       actions:
         - click_me
       material: PAPER
@@ -83,18 +72,10 @@ normal-gui:
       display-name: <red>Click Me
       lore:
         - <green>Don't click me
-      model-components:
-        floats: []
-        strings: []
-        flags: []
-    - ingredient-id: '#'
+    - shape-id: '#'
       actions: []
       material: GRAY_STAINED_GLASS_PANE
       amount: 1
       unbreakable: false
       display-name: ' '
       lore: []
-      model-components:
-        floats: []
-        strings: []
-        flags: []

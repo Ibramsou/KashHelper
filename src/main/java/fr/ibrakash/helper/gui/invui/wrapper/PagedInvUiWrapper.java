@@ -49,7 +49,7 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
             contents.add(item);
         }
 
-        builder.addIngredient(this.config.getPagedItem().getIngredientId(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
+        builder.addIngredient(this.config.getPagedItem().getShapeId(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
                 .setContent(contents);
     }
 
