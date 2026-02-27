@@ -33,24 +33,15 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
 
     @Override
     protected void additionalData(PagedGui.Builder<Item> builder) {
-        List<GuiPagedObject<O>> objects = this.loadPageObjects();
-
-        List<Item> contents = new ArrayList<>(objects.size());
-
-        for (int i = 0; i < objects.size(); i++) {
-            GuiPagedObject<O> object = objects.get(i);
-            InvUiItem item = new InvUiItem(this, this.config.getPagedItem());
-            List<Object> replacers = this.pagedParsers(object.object());
-            item.setCustomReplacers(TextUtil.addReplacers(replacers,
-                    "%page_item_index%", i,
-                    "%page_item_number%", i + 1
-            ));
-            item.setDefaultConsumer(object.consumer());
-            contents.add(item);
-        }
-
         builder.addIngredient(this.config.getPagedItem().getShapeId(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
-                .setContent(contents);
+                .setContent(loadContents());
+    }
+
+    @Override
+    public void refresh() {
+        this.gui.setContent(loadContents());
+        this.gui.setPage(0);
+        super.refresh();
     }
 
     @Override
@@ -71,5 +62,20 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
     @Override
     public void previousPage() {
         this.gui.goBack();
+    }
+
+    private List<Item> loadContents() {
+        List<GuiPagedObject<O>> objects = this.loadPageObjects();
+
+        List<Item> contents = new ArrayList<>(objects.size());
+
+        this.listPageObjects((replacers, clickConsumer) -> {
+            InvUiItem item = new InvUiItem(this, this.config.getPagedItem());
+            item.setCustomReplacers(replacers);
+            item.setDefaultConsumer(clickConsumer);
+            contents.add(item);
+        });
+
+        return contents;
     }
 }

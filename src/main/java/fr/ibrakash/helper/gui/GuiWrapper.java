@@ -3,6 +3,8 @@ package fr.ibrakash.helper.gui;
 import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
+import fr.ibrakash.helper.utils.TextUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
@@ -58,6 +60,10 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     public void open(Player player) {
         if (this.gui == null) this.buildGui();
         this.window = this.createWindow(player);
+    }
+
+    public Component title() {
+        return TextUtil.replacedComponent(this.config.getTitle(), this.getReplacers());
     }
 
     protected abstract G build();

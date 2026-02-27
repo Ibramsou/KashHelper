@@ -56,6 +56,7 @@ paged-gui:
       material: DIAMOND
       actions:
         - switch_item:X # Will get back to the clicked paginated item
+        - reload_items
 normal-gui:
   title: <green>Normal Gui
   shape:

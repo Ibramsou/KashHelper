@@ -39,7 +39,7 @@ public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B
         Window window = Window.single()
                 .setViewer(player)
                 .setGui(this.gui)
-                .setTitle(new AdventureComponentWrapper(TextUtil.replacedComponent(this.config.getTitle(), this.getReplacers())))
+                .setTitle(new AdventureComponentWrapper(this.title()))
                 .build();
         window.open();
         return window;
@@ -48,7 +48,7 @@ public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B
     @Override
     public void refresh() {
         if (this.window == null) return;
-        this.window.changeTitle(new AdventureComponentWrapper(TextUtil.replacedComponent(this.config.getTitle(), this.getReplacers())));
+        this.window.changeTitle(new AdventureComponentWrapper(this.title()));
         this.items.forEach(InvUiItem::updateItem);
     }
 

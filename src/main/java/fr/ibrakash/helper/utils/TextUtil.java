@@ -9,7 +9,17 @@ import java.util.List;
 
 public class TextUtil {
 
-    public static List<Object> addReplacers(List<Object> input, Object... replacers) {
+    @SafeVarargs
+    public static List<Object> mergeReplacers(List<Object> input, List<Object>... replacers) {
+        List<Object> result = new ArrayList<>(input);
+        for (List<Object> replacer : replacers) {
+            result.addAll(replacer);
+        }
+
+        return result;
+    }
+
+    public static List<Object> mergeReplacers(List<Object> input, Object... replacers) {
         List<Object> result = new ArrayList<>(input);
         result.addAll(List.of(replacers));
         return result;

@@ -15,7 +15,7 @@ public class ExampleCommand implements CommandExecutor {
             String argument = args.length == 0 ? "" : args[0].toLowerCase();
             switch (argument) {
                 case "gui" -> new ExampleGui().open(player);
-                case "paged" -> new ExamplePagedGui().open(player);
+                case "paged" -> new ExamplePagedGui(player).open(player);
             }
         }
         return false;

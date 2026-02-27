@@ -1,5 +1,6 @@
 package fr.ibrakash.helper.gui;
 
+import fr.ibrakash.helper.utils.TextUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -7,6 +8,19 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import java.util.List;
 
 public interface GuiPageHandler<O> {
+
+    default void listPageObjects(PagedItemConsumer consumer) {
+        List<GuiPagedObject<O>> objects = this.loadPageObjects();
+        for (int i = 0; i < objects.size(); i++) {
+            GuiPagedObject<O> object = objects.get(i);
+            List<Object> replacers = TextUtil.mergeReplacers(this.pagedParsers(object.object()),
+                    "%page_item_index%", i,
+                    "%page_item_number%", i + 1
+            );
+
+            consumer.accept(replacers, object.consumer());
+        }
+    }
 
     default void setPageActions(GuiWrapper<?, ?, ?> wrapper) {
         wrapper.setAction("next_page", (issuer, type, event, item) ->
@@ -34,4 +48,9 @@ public interface GuiPageHandler<O> {
     void nextPage();
 
     void previousPage();
+
+    @FunctionalInterface
+    interface PagedItemConsumer {
+        void accept(List<Object> replacers, GuiActionConsumer clickConsumer);
+    }
 }
