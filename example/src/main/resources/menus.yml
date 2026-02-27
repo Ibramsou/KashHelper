@@ -1,6 +1,6 @@
 paged-gui:
   # Paged Menu Title
-  title: <gray>Example Title
+  title: '<gray>Example Title: <white>%player%'
   # Menu Shape
   shape:
     - '# # # # # # # # #'
@@ -18,6 +18,7 @@ paged-gui:
     display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
     lore:
       - '<gray>Item #page_item_number'
+      - '<gray>You are:<white> %player%'
     # Custom Model Data Components For Custom Models
     model-components:
       floats: []
@@ -36,7 +37,7 @@ paged-gui:
     - shape-id: P
       actions:
         - previous_page
-      material: PAPER
+      material: "skin_texture:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGUxZGZjMTFhODM3MTExZDIyYjAwMWExNDQ2MWY5YTdmYzA5MzUyMmY4OGM1OGZhZWZkNmFkZWZmY2Q0ZTlhYiJ9fX0="
       amount: 1
       unbreakable: false
       display-name: <gray>Previous Page
@@ -45,7 +46,7 @@ paged-gui:
     - shape-id: N
       actions:
         - next_page
-      material: PAPER
+      material: "skin_texture:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2M2OWQ0MTA3NmE4ZGVhNGYwNmQzZjFhOWFjNDdjYzk5Njk4OGI3NGEwOTEzYWIyYWMxYTc0Y2FmNzA4MTkxOCJ9fX0="
       amount: 1
       unbreakable: false
       display-name: <gray>Next Page

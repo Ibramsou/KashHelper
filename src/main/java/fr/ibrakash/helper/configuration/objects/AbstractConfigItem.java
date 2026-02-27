@@ -40,7 +40,7 @@ public class AbstractConfigItem {
             String input = split[1];
 
             itemStack = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta meta = (SkullMeta) itemStack;
+            SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
             switch (type) {
                 case "skin_texture" -> meta.setPlayerProfile(PlayerProfileCache.fetchTextureSkin(input));
                 case "uuid_skin" -> meta.setPlayerProfile(PlayerProfileCache.fetchTextureSkin(UUID.fromString(input)).join());
