@@ -19,6 +19,7 @@ public class ExamplePlugin extends JavaPlugin {
 
         ExampleConfig.get();
         ExampleLocale.get().reload(this);
+        ExampleItems.get().reload(this);
         ExampleMenus.get().reload(this);
         ConfigurationUtils.reloadUniqueMappers();
 

@@ -45,6 +45,8 @@ public abstract class ConfigurationMenus {
                     if (entry == null) {
                         throw new IllegalArgumentException("Invalid GUI configuration: " + path);
                     }
+
+                    entry.addDefaultItems(this.defaultItems());
                     return entry;
                 } else {
                     throw new  IllegalArgumentException("Invalid GUI configuration: " + path);
@@ -61,4 +63,6 @@ public abstract class ConfigurationMenus {
     }
 
     public abstract String key();
+
+    public abstract ConfigurationItems defaultItems();
 }

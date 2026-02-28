@@ -1,5 +1,6 @@
 package fr.ibrakash.helper.example;
 
+import fr.ibrakash.helper.configuration.ConfigurationItems;
 import fr.ibrakash.helper.configuration.ConfigurationMenus;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
@@ -16,5 +17,10 @@ public class ExampleMenus extends ConfigurationMenus {
     @Override
     public String key() {
         return "menus";
+    }
+
+    @Override
+    public ConfigurationItems defaultItems() {
+        return ExampleItems.get();
     }
 }

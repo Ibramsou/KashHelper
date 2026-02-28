@@ -1,5 +1,6 @@
 package fr.ibrakash.helper.configuration.objects;
 
+import fr.ibrakash.helper.configuration.ConfigurationItems;
 import fr.ibrakash.helper.configuration.objects.action.ConfigAction;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.item.ConfigItems;
@@ -7,6 +8,7 @@ import fr.ibrakash.helper.configuration.objects.stream.ConfigStream;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,5 +64,22 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
 
     public void setItems(Map<String, ConfigGuiItem> items) {
         this.items = items;
+    }
+
+    public void addDefaultItems(ConfigurationItems configurationItems) {
+        if (configurationItems == null) return;
+        Map<Character, ConfigGuiItem> shapeItems = new HashMap<>();
+        this.items.values().forEach(item -> shapeItems.put(item.getShapeCharacter(), item));
+        this.shape.forEach(line -> {
+            for (char character : line.toCharArray()) {
+                if (shapeItems.containsKey(character)) {
+                    continue;
+                }
+
+                ConfigGuiItem guiItem = configurationItems.getShapeItem(character);
+                if (guiItem == null) continue;
+                this.items.put(guiItem.getId(), guiItem);
+            }
+        });
     }
 }
