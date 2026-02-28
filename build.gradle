@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'fr.ibrakash.helper'
-version = '1.2.0'
+version = '1.3.0'
 
 repositories {
     mavenCentral()
@@ -24,41 +24,31 @@ java {
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
 
-    // ⚠️ Si KashHelper UTILISE configurate/jackson à runtime, mets-les en implementation
-    // pour qu'ils soient inclus dans le shadowJar.
     compileOnly 'org.spongepowered:configurate-core:4.2.0'
     compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
     compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
     compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
 
-    // InvUI sera embarqué dans KashHelper (shadow)
     implementation "xyz.xenondevs.invui:invui:1.49"
 }
 
-// Évite collision jar vs shadowJar quand le shadowJar n'a pas de classifier.
-// (doc Shadow: collisions possibles si les deux sont "") :contentReference[oaicite:2]{index=2}
 tasks.jar {
     archiveClassifier.set("plain")
 }
 
 tasks.shadowJar {
-    archiveClassifier.set("") // le fat jar devient l'artefact "principal"
-    // mergeServiceFiles() // optionnel si tu as des service loaders
-    // relocate(...) // optionnel (⚠️ à éviter si ton API expose des types InvUI)
+    archiveClassifier.set("")
 }
 
 publishing {
     publications {
         maven(MavenPublication) {
-            // Force les coordonnées que tu veux publier
             groupId = "xyz.imrine"
             artifactId = "Kash-Helper"
             version = project.version.toString()
 
-            // Publie le jar shadowé
             from components.shadow
 
-            // Publie aussi sources/javadoc (Maven Central aime bien les avoir)
             artifact(tasks.named("sourcesJar"))
             artifact(tasks.named("javadocJar"))
         }
@@ -96,7 +86,6 @@ mavenPublishing {
     }
 }
 
-// --- SIGNING (ton style, in-memory depuis un fichier)
 def signingKeyFile = findProperty("signingInMemoryKeyFile")?.toString()
 def signingPassword = findProperty("signingInMemoryKeyPassword")?.toString()
 
