@@ -2,7 +2,6 @@ package fr.ibrakash.helper.gui.invui;
 
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
 import fr.ibrakash.helper.gui.GuiWrapper;
-import fr.ibrakash.helper.utils.TextUtil;
 import org.bukkit.entity.Player;
 import xyz.xenondevs.inventoryaccess.component.AdventureComponentWrapper;
 import xyz.xenondevs.invui.gui.Gui;

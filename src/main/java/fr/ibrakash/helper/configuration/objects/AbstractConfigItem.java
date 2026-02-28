@@ -1,10 +1,9 @@
 package fr.ibrakash.helper.configuration.objects;
 
-import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
+import fr.ibrakash.helper.text.TextReplacer;
 import fr.ibrakash.helper.utils.ItemModelComponents;
 import fr.ibrakash.helper.utils.MaterialUtil;
 import fr.ibrakash.helper.utils.PlayerProfileCache;
-import fr.ibrakash.helper.utils.TextUtil;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -12,7 +11,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,12 +25,8 @@ public class AbstractConfigItem {
     protected List<String> lore = new ArrayList<>();
     protected ItemModelComponents modelComponents = new ItemModelComponents();
 
-    public ItemStack build(Object... replacers) {
-        return build(Arrays.asList(replacers));
-    }
-
     @SuppressWarnings("UnstableApiUsage")
-    public ItemStack build(List<Object> replacers) {
+    public ItemStack build(TextReplacer replacer) {
         ItemStack itemStack;
         if (this.material.contains(":")) {
             String[] split = this.material.split(":");
@@ -49,7 +43,7 @@ public class AbstractConfigItem {
             }
             itemStack.setItemMeta(meta);
         } else if (this.material.startsWith("%") && this.material.endsWith("%")) {
-            itemStack = new ItemStack(MaterialUtil.parseOrThrow(TextUtil.replaced(this.material, replacers)));
+            itemStack = new ItemStack(MaterialUtil.parseOrThrow(replacer.apply(this.material)));
         } else {
             itemStack = new ItemStack(MaterialUtil.parseOrThrow(this.material));
         }
@@ -57,11 +51,11 @@ public class AbstractConfigItem {
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(this.unbreakable);
         if (this.displayName != null && !displayName.isEmpty()) {
-            meta.displayName(TextUtil.replacedItemComponent(this.displayName, replacers));
+            meta.displayName(replacer.deserializeItemName(this.displayName));
         }
 
         if (!this.lore.isEmpty()) {
-            meta.lore(TextUtil.replacedItemComponents(this.lore, replacers));
+            meta.lore(replacer.deserializeItemLore(this.lore));
         }
 
         // TODO: Add a wrapper for legacy versions
@@ -99,6 +93,30 @@ public class AbstractConfigItem {
 
     public ItemModelComponents getModelComponents() {
         return modelComponents;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public void setUnbreakable(boolean unbreakable) {
+        this.unbreakable = unbreakable;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public void setLore(List<String> lore) {
+        this.lore = lore;
+    }
+
+    public void setModelComponents(ItemModelComponents modelComponents) {
+        this.modelComponents = modelComponents;
     }
 
     protected void copyValues(AbstractConfigItem from, AbstractConfigItem to) {

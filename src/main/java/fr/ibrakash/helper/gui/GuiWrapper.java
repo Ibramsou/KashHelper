@@ -1,9 +1,9 @@
 package fr.ibrakash.helper.gui;
 
-import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
+import fr.ibrakash.helper.configuration.objects.gui.ConfigPagedGui;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
-import fr.ibrakash.helper.utils.TextUtil;
+import fr.ibrakash.helper.text.TextReplacer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -12,18 +12,18 @@ import java.util.*;
 
 public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
 
-
     protected final C config;
     protected final Map<String, GuiAction> actions = new HashMap<>();
     protected final Map<Character, ConfigGuiItem> ingredients = new HashMap<>();
+    protected final TextReplacer replacer = TextReplacer.create();
 
     protected G gui;
     protected W window;
 
     public GuiWrapper(C config) {
         this.config = config;
-        if (this.config instanceof PagedGuiConfig pagedGuiConfig) {
-            this.ingredients.put(pagedGuiConfig.getPagedItem().getShapeId(), pagedGuiConfig.getPagedItem());
+        if (this.config instanceof ConfigPagedGui configPagedGui) {
+            this.ingredients.put(configPagedGui.getPagedItem().getShapeId(), configPagedGui.getPagedItem());
         }
         this.config.getItems().forEach(item -> this.ingredients.put(item.getShapeId(), item));
         this.ingredients.forEach((character, item) -> {
@@ -31,6 +31,11 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
             this.setAction(key, (issuer, type, event, wrapper) ->
                     wrapper.replaceItem(character == wrapper.getDefaultItem().getShapeId() ? wrapper.getDefaultItem() : item));
         });
+        this.setAction("refresh", (issuer, type, event, item) -> this.refresh());
+    }
+
+    public TextReplacer replacer() {
+        return replacer;
     }
 
     public void setAction(String key, GuiActionConsumer consumer) {
@@ -63,7 +68,7 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     }
 
     public Component title() {
-        return TextUtil.replacedComponent(this.config.getTitle(), this.getReplacers());
+        return this.replacer.deserialize(this.config.getTitle());
     }
 
     protected abstract G build();
@@ -75,6 +80,4 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     public C getConfig() {
         return config;
     }
-
-    public abstract List<Object> getReplacers();
 }

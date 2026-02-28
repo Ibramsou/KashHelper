@@ -1,6 +1,6 @@
 package fr.ibrakash.helper.configuration.objects.display;
 
-import fr.ibrakash.helper.utils.TextUtil;
+import fr.ibrakash.helper.text.TextUtil;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.util.Ticks;
 import org.bukkit.entity.Player;

@@ -1,13 +1,14 @@
 package fr.ibrakash.helper.configuration.objects;
 
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
+import fr.ibrakash.helper.configuration.objects.stream.ConfigStream;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.List;
 
 @ConfigSerializable
-public class AbstractGuiConfig {
+public abstract class AbstractGuiConfig extends ConfigStream  {
 
     protected String title = "<gray>Example Title";
     protected List<String> shape = List.of(
@@ -39,5 +40,17 @@ public class AbstractGuiConfig {
 
     public List<ConfigGuiItem> getItems() {
         return items;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setShape(List<String> shape) {
+        this.shape = shape;
+    }
+
+    public void setItems(List<ConfigGuiItem> items) {
+        this.items = items;
     }
 }

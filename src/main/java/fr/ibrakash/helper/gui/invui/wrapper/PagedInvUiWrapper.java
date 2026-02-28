@@ -1,11 +1,10 @@
 package fr.ibrakash.helper.gui.invui.wrapper;
 
-import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
+import fr.ibrakash.helper.configuration.objects.gui.ConfigPagedGui;
 import fr.ibrakash.helper.gui.GuiPageHandler;
 import fr.ibrakash.helper.gui.GuiPagedObject;
 import fr.ibrakash.helper.gui.invui.InvUiItem;
 import fr.ibrakash.helper.gui.invui.InvUiWrapper;
-import fr.ibrakash.helper.utils.TextUtil;
 import xyz.xenondevs.invui.gui.PagedGui;
 import xyz.xenondevs.invui.gui.structure.Markers;
 import xyz.xenondevs.invui.item.Item;
@@ -13,9 +12,9 @@ import xyz.xenondevs.invui.item.Item;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, PagedGuiConfig, PagedGui.Builder<Item>> implements GuiPageHandler<O> {
+public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, ConfigPagedGui, PagedGui.Builder<Item>> implements GuiPageHandler<O> {
 
-    public PagedInvUiWrapper(PagedGuiConfig config) {
+    public PagedInvUiWrapper(ConfigPagedGui config) {
         super(config);
 
         this.setPageActions(this);

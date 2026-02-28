@@ -79,6 +79,14 @@ public class ConfigGuiItem extends AbstractConfigItem {
         return actions;
     }
 
+    public void setShapeId(char shapeId) {
+        this.shapeId = shapeId;
+    }
+
+    public void setActions(List<String> actions) {
+        this.actions = actions;
+    }
+
     public ConfigGuiItem clone() {
         ConfigGuiItem guiItem = new ConfigGuiItem();
         super.copyValues(this, guiItem);

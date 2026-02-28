@@ -1,6 +1,6 @@
 package fr.ibrakash.helper.configuration.objects.display;
 
-import fr.ibrakash.helper.utils.TextUtil;
+import fr.ibrakash.helper.text.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;

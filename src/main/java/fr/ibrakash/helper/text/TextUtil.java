@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.utils;
+package fr.ibrakash.helper.text;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -6,6 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class TextUtil {
 
@@ -40,8 +41,12 @@ public class TextUtil {
     }
 
     public static List<Component> replacedComponents(List<String> input, List<Object> replacers) {
+        return replacedComponents(input, replacers, null);
+    }
+
+    public static List<Component> replacedComponents(List<String> input, List<Object> replacers, UnaryOperator<String> operator) {
         List<Component> results = new ArrayList<>();
-        input.forEach(s -> results.add(replacedComponent(s, replacers)));
+        input.forEach(s -> results.add(replacedComponent(operator == null ? s : operator.apply(s), replacers)));
         return results;
     }
 
@@ -61,8 +66,6 @@ public class TextUtil {
         return result;
     }
 
-
-
     public static Component replacedComponent(String input, Object... replacers) {
         return replacedComponent(input, Arrays.asList(replacers));
     }
@@ -71,21 +74,26 @@ public class TextUtil {
         return MiniMessage.miniMessage().deserialize(replaced(input, replacers));
     }
 
-    public static Component replacedItemComponent(String input, Object... replacers) {
-        return replacedItemComponent(input, Arrays.asList(replacers));
+    public static Component replacedItemName(String input, Object... replacers) {
+        return replacedItemName(input, Arrays.asList(replacers));
     }
 
-    public static Component replacedItemComponent(String input, List<Object> replacers) {
+    public static Component replacedItemName(String input, List<Object> replacers) {
         return replacedComponent("<italic:false>" + input, replacers);
     }
 
-    public static List<Component> replacedItemComponents(List<String> input, Object... replacers) {
-        return replacedItemComponents(input, Arrays.asList(replacers));
+    public static List<Component> replacedItemLore(List<String> input, Object... replacers) {
+        return replacedItemLore(input, Arrays.asList(replacers));
     }
 
-    public static List<Component> replacedItemComponents(List<String> input, List<Object> replacers) {
+    public static List<Component> replacedItemLore(List<String> input, List<Object> replacers) {
         List<Component> results = new ArrayList<>();
-        input.forEach(s -> results.add(replacedItemComponent(s, replacers)));
+        input.forEach(s -> {
+            String[] lines = replaced(s, replacers).split("\n");
+            for (String line : lines) {
+                results.add(MiniMessage.miniMessage().deserialize(line));
+            }
+        });
         return results;
     }
 }

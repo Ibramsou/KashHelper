@@ -1,9 +1,9 @@
 plugins {
-    id 'java'
     id 'java-library'
-    id "com.vanniktech.maven.publish" version "0.36.0"
+    id 'maven-publish'
+    id "com.vanniktech.maven.publish.base" version "0.36.0"
     id 'signing'
-    id("com.gradleup.shadow") version "9.3.1" apply true
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
 group = 'fr.ibrakash.helper'
@@ -12,30 +12,61 @@ version = '1.2.0'
 repositories {
     mavenCentral()
     maven { url "https://repo.papermc.io/repository/maven-public/" }
-    maven {
-        url 'https://repo.xenondevs.xyz/releases'
-    }
+    maven { url 'https://repo.xenondevs.xyz/releases' }
 }
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+    withSourcesJar()
+    withJavadocJar()
 }
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+
+    // ⚠️ Si KashHelper UTILISE configurate/jackson à runtime, mets-les en implementation
+    // pour qu'ils soient inclus dans le shadowJar.
     compileOnly 'org.spongepowered:configurate-core:4.2.0'
     compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
     compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
     compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
+
+    // InvUI sera embarqué dans KashHelper (shadow)
     implementation "xyz.xenondevs.invui:invui:1.49"
+}
+
+// Évite collision jar vs shadowJar quand le shadowJar n'a pas de classifier.
+// (doc Shadow: collisions possibles si les deux sont "") :contentReference[oaicite:2]{index=2}
+tasks.jar {
+    archiveClassifier.set("plain")
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("") // le fat jar devient l'artefact "principal"
+    // mergeServiceFiles() // optionnel si tu as des service loaders
+    // relocate(...) // optionnel (⚠️ à éviter si ton API expose des types InvUI)
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            // Force les coordonnées que tu veux publier
+            groupId = "xyz.imrine"
+            artifactId = "Kash-Helper"
+            version = project.version.toString()
+
+            // Publie le jar shadowé
+            from components.shadow
+
+            // Publie aussi sources/javadoc (Maven Central aime bien les avoir)
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
+        }
+    }
 }
 
 mavenPublishing {
     publishToMavenCentral(true)
-
-    coordinates("xyz.imrine", "Kash-Helper", version.toString())
 
     pom {
         name.set("KashHelper")
@@ -65,13 +96,16 @@ mavenPublishing {
     }
 }
 
+// --- SIGNING (ton style, in-memory depuis un fichier)
 def signingKeyFile = findProperty("signingInMemoryKeyFile")?.toString()
 def signingPassword = findProperty("signingInMemoryKeyPassword")?.toString()
 
 signing {
-    def keyText = file(signingKeyFile).text
-    useInMemoryPgpKeys(keyText, signingPassword)
-    sign(publishing.publications)
+    if (signingKeyFile != null && file(signingKeyFile).exists()) {
+        def keyText = file(signingKeyFile).text
+        useInMemoryPgpKeys(keyText, signingPassword)
+        sign(publishing.publications)
+    }
 }
 
 tasks.withType(GenerateModuleMetadata).configureEach {

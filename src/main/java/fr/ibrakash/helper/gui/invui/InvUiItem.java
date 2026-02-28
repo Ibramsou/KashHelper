@@ -5,6 +5,7 @@ import fr.ibrakash.helper.configuration.objects.item.ConfigItem;
 import fr.ibrakash.helper.gui.GuiActionConsumer;
 import fr.ibrakash.helper.gui.GuiItemWrapper;
 import fr.ibrakash.helper.gui.GuiWrapper;
+import fr.ibrakash.helper.text.TextReplacer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -21,7 +22,7 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
     private final ConfigGuiItem defaultItem;
     private ConfigGuiItem item;
     private GuiActionConsumer defaultConsumer;
-    private List<Object> customReplacers;
+    private TextReplacer customReplacers;
 
     public InvUiItem(GuiWrapper<?, ?, ?> wrapper, ConfigGuiItem item) {
         this.wrapper = wrapper;
@@ -33,7 +34,7 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
     public ItemProvider getItemProvider() {
         return new ItemBuilder(
                 this.customReplacers == null ?
-                        this.item.build(this.wrapper.getReplacers()) :
+                        this.item.build(this.wrapper.replacer()) :
                         this.item.build(this.customReplacers)
         );
     }
@@ -72,7 +73,7 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
         this.defaultConsumer = defaultConsumer;
     }
 
-    public void setCustomReplacers(List<Object> customReplacers) {
+    public void setCustomReplacers(TextReplacer customReplacers) {
         this.customReplacers = customReplacers;
     }
 }

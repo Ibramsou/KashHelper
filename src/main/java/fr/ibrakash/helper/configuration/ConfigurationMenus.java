@@ -1,8 +1,8 @@
 package fr.ibrakash.helper.configuration;
 
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
-import fr.ibrakash.helper.configuration.objects.gui.GuiConfig;
-import fr.ibrakash.helper.configuration.objects.gui.PagedGuiConfig;
+import fr.ibrakash.helper.configuration.objects.gui.ConfigGui;
+import fr.ibrakash.helper.configuration.objects.gui.ConfigPagedGui;
 import fr.ibrakash.helper.utils.FileUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -13,8 +13,8 @@ import java.util.Map;
 
 public abstract class ConfigurationMenus {
 
-    private final Map<String, PagedGuiConfig> pagedPathMap = new HashMap<>();
-    private final Map<String, GuiConfig> normalPathMap = new HashMap<>();
+    private final Map<String, ConfigPagedGui> pagedPathMap = new HashMap<>();
+    private final Map<String, ConfigGui> normalPathMap = new HashMap<>();
     private final String key;
     private ConfigurationNode node;
 
@@ -28,12 +28,12 @@ public abstract class ConfigurationMenus {
         this.node = ConfigurationUtils.loadReadOnlyNode(plugin, ConfigurationLoaderType.YAML, FileUtil.getPath(plugin, this.key, "yml"));
     }
 
-    public PagedGuiConfig getPaged(String path) {
-        return get(this.pagedPathMap, path, PagedGuiConfig.class);
+    public ConfigPagedGui getPaged(String path) {
+        return get(this.pagedPathMap, path, ConfigPagedGui.class);
     }
 
-    public GuiConfig getNormal(String path) {
-        return this.get(this.normalPathMap, path, GuiConfig.class);
+    public ConfigGui getNormal(String path) {
+        return this.get(this.normalPathMap, path, ConfigGui.class);
     }
 
     public <V extends AbstractGuiConfig> V get(Map<String, V> map, String path, Class<V> clazz) {

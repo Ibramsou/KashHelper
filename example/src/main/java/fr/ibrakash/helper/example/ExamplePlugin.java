@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.example;
 
 import fr.ibrakash.helper.configuration.ConfigurationUtils;
+import fr.ibrakash.helper.text.TextReplacer;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,7 +26,7 @@ public class ExamplePlugin extends JavaPlugin {
             Bukkit.getScheduler().runTaskTimer(this, () -> {
                 ExampleLocale.get().get(exampleObject.getLocalePath()).broadcast();
                 Bukkit.getOnlinePlayers().forEach(player ->
-                        player.give(ExampleConfig.get().getReplaceableItem().build("%player%", player.getName())));
+                        player.give(ExampleConfig.get().getReplaceableItem().build(TextReplacer.create().add("%player%", player.getName()))));
             }, 0L, exampleObject.getInterval());
         });
 
