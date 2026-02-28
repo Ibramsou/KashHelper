@@ -6,7 +6,7 @@ paged-gui:
     - '# # # # # # # # #'
     - '# X X X X X X X #'
     - '# X X X X X X X #'
-    - '# # P # # # N # #'
+    - '# # P # F # N # #'
   # Paged Item Configuration
   paged-item:
     shape-id: X # Character ID matching the shape (every 'X' from the shape will be filled by this item).
@@ -17,14 +17,31 @@ paged-gui:
     unbreakable: false
     display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
     lore:
-      - '<gray>Item #page_item_number'
+      - '<gray>Item #%page_item_number%'
       - '<gray>You are:<white> %player%'
     # Custom Model Data Components For Custom Models
     model-components:
       floats: []
       strings: []
       flags: []
+  filters:
+    blocks:
+      selected-entry: '<green>- %mode%'
+      un-selected-entry: '<gray>- %mode%'
+      modes:
+        - text: All
+          streams: [sort_names]
+        - text: Ores
+          streams: [ores_only, sort_diamonds, sort_names]
+        - text: Wood
+          streams: [wood_only, sort_names]
   items:
+    - shape-id: 'F'
+      display-name: '<gold>Filter'
+      lore:
+        - '%filter_lore:blocks%'
+      actions:
+        - 'change_filter_mode:blocks'
     # Decoration Item
     - shape-id: '#' # Ingredient matching the shape
       actions: []
