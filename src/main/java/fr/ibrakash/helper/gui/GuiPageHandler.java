@@ -1,7 +1,6 @@
 package fr.ibrakash.helper.gui;
 
 import fr.ibrakash.helper.text.TextReplacer;
-import fr.ibrakash.helper.text.TextUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;

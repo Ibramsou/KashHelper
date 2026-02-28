@@ -5,24 +5,7 @@ paged-gui:
     - '# X X X X X X X #'
     - '# X X X X X X X #'
     - '# # P # F # N # #'
-  paged-item:
-    shape-character: X
-    actions:
-      - click-types: [LEFT]
-        execute: [switch_item:get-back]
-      - click-types: [RIGHT]
-        execute: [change_filter_mode:blocks]
-    material: '%material_name%'
-    amount: 1
-    unbreakable: false
-    display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
-    lore:
-      - '<gray>Item #%page_item_number%'
-      - <gray>You are:<white> %player%
-    model-components:
-      floats: []
-      strings: []
-      flags: []
+  paged-item: "block"
   filters:
     blocks:
       selected-entry: <green>- %mode%
@@ -35,6 +18,24 @@ paged-gui:
         - text: Wood
           streams: [wood_only, sort_names]
   items:
+    block:
+      shape-character: X
+      actions:
+        - click-types: [ LEFT ]
+          execute: [ switch_item:get-back ]
+        - click-types: [ RIGHT ]
+          execute: [ change_filter_mode:blocks ]
+      material: '%material_name%'
+      amount: 1
+      unbreakable: false
+      display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
+      lore:
+        - '<gray>Item #%page_item_number%'
+        - <gray>You are:<white> %player%
+      model-components:
+        floats: [ ]
+        strings: [ ]
+        flags: [ ]
     filter:
       shape-character: F
       display-name: <gold>Filter

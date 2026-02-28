@@ -11,6 +11,4 @@ public interface ConfigGuiShapes {
             "# X X X X X X X #",
             "# # P # # # N # #"
     ));
-
-
 }

@@ -9,6 +9,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @ConfigSerializable
 public abstract class AbstractGuiConfig extends ConfigStream  {
@@ -45,6 +46,10 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
         items.forEach((s, item) -> item.setId(s));
         this.loaded = true;
         return items;
+    }
+
+    public Optional<ConfigGuiItem> getItem(String key) {
+        return Optional.ofNullable(this.getItems().get(key));
     }
 
     public void setTitle(String title) {

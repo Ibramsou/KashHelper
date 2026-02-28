@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.gui.invui.wrapper;
 
 import fr.ibrakash.helper.configuration.objects.gui.ConfigPagedGui;
+import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.gui.GuiPageHandler;
 import fr.ibrakash.helper.gui.GuiPagedObject;
 import fr.ibrakash.helper.gui.invui.InvUiItem;
@@ -32,8 +33,9 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
 
     @Override
     protected void additionalData(PagedGui.Builder<Item> builder) {
-        builder.addIngredient(this.config.getPagedItem().getShapeCharacter(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
-                .setContent(loadContents());
+        this.config.getPagedItem().ifPresent(item ->
+                builder.addIngredient(item.getShapeCharacter(), Markers.CONTENT_LIST_SLOT_HORIZONTAL));
+        builder.setContent(this.loadContents());
     }
 
     @Override
@@ -64,17 +66,19 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
     }
 
     private List<Item> loadContents() {
-        List<GuiPagedObject<O>> objects = this.loadPageObjects();
+        return this.config.getPagedItem().map(pagedItem -> {
+            List<GuiPagedObject<O>> objects = this.loadPageObjects();
 
-        List<Item> contents = new ArrayList<>(objects.size());
+            List<Item> contents = new ArrayList<>(objects.size());
 
-        this.listPageObjects((replacers, clickConsumer) -> {
-            InvUiItem item = new InvUiItem(this, this.config.getPagedItem());
-            item.setCustomReplacers(replacers);
-            item.setDefaultConsumer(clickConsumer);
-            contents.add(item);
-        });
+            this.listPageObjects((replacers, clickConsumer) -> {
+                InvUiItem item = new InvUiItem(this, pagedItem);
+                item.setCustomReplacers(replacers);
+                item.setDefaultConsumer(clickConsumer);
+                contents.add(item);
+            });
 
-        return contents;
+            return contents;
+        }).orElse(List.of());
     }
 }

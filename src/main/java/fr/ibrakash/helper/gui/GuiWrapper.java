@@ -21,9 +21,6 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
 
     public GuiWrapper(C config) {
         this.config = config;
-        if (this.config instanceof ConfigPagedGui configPagedGui) {
-            this.registerItemSwitcher(configPagedGui.getPagedItem());
-        }
         this.config.getItems().values().forEach(this::registerItemSwitcher);
         this.setAction("refresh", (issuer, type, event, item) -> this.refresh());
         this.setAction("close_inventory", (issuer, type, event, item) -> issuer.closeInventory());
