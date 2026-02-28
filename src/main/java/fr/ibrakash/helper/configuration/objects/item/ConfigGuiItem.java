@@ -11,8 +11,10 @@ import java.util.List;
 @ConfigSerializable
 public class ConfigGuiItem extends AbstractConfigItem {
 
-    private char shapeId = 'A';
+    private char shapeCharacter = 'A';
     private List<String> actions = new ArrayList<>();
+
+    private transient String id;
 
     public ConfigGuiItem() {}
 
@@ -22,7 +24,7 @@ public class ConfigGuiItem extends AbstractConfigItem {
     }
 
     public ConfigGuiItem ingredientCharacter(char character) {
-        this.shapeId = character;
+        this.shapeCharacter = character;
         return this;
     }
 
@@ -71,26 +73,34 @@ public class ConfigGuiItem extends AbstractConfigItem {
         return this;
     }
 
-    public char getShapeId() {
-        return shapeId;
+    public char getShapeCharacter() {
+        return shapeCharacter;
     }
 
     public List<String> getActions() {
         return actions;
     }
 
-    public void setShapeId(char shapeId) {
-        this.shapeId = shapeId;
+    public void setShapeCharacter(char shapeCharacter) {
+        this.shapeCharacter = shapeCharacter;
     }
 
     public void setActions(List<String> actions) {
         this.actions = actions;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public ConfigGuiItem clone() {
         ConfigGuiItem guiItem = new ConfigGuiItem();
         super.copyValues(this, guiItem);
-        guiItem.shapeId = shapeId;
+        guiItem.shapeCharacter = shapeCharacter;
         guiItem.actions = actions;
         return guiItem;
     }

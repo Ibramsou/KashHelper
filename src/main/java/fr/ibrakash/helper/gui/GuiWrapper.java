@@ -14,7 +14,6 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
 
     protected final C config;
     protected final Map<String, GuiAction> actions = new HashMap<>();
-    protected final Map<Character, ConfigGuiItem> ingredients = new HashMap<>();
     protected final TextReplacer replacer = TextReplacer.create();
 
     protected G gui;
@@ -23,15 +22,16 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     public GuiWrapper(C config) {
         this.config = config;
         if (this.config instanceof ConfigPagedGui configPagedGui) {
-            this.ingredients.put(configPagedGui.getPagedItem().getShapeId(), configPagedGui.getPagedItem());
+            this.registerItemSwitcher(configPagedGui.getPagedItem());
         }
-        this.config.getItems().forEach(item -> this.ingredients.put(item.getShapeId(), item));
-        this.ingredients.forEach((character, item) -> {
-            String key = "switch_item:" + character;
-            this.setAction(key, (issuer, type, event, wrapper) ->
-                    wrapper.replaceItem(character == wrapper.getDefaultItem().getShapeId() ? wrapper.getDefaultItem() : item));
-        });
+        this.config.getItems().values().forEach(this::registerItemSwitcher);
         this.setAction("refresh", (issuer, type, event, item) -> this.refresh());
+    }
+
+    private void registerItemSwitcher(ConfigGuiItem item) {
+        String key = "switch_item:" + item.getId();
+        this.setAction(key, (issuer, type, event, wrapper) ->
+                wrapper.replaceItem(item.getId().equals(wrapper.getDefaultItem().getId()) ? wrapper.getDefaultItem() : item));
     }
 
     public TextReplacer replacer() {

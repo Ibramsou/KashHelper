@@ -1,11 +1,13 @@
 package fr.ibrakash.helper.configuration.objects;
 
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
+import fr.ibrakash.helper.configuration.objects.item.ConfigItems;
 import fr.ibrakash.helper.configuration.objects.stream.ConfigStream;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.List;
+import java.util.Map;
 
 @ConfigSerializable
 public abstract class AbstractGuiConfig extends ConfigStream  {
@@ -17,18 +19,17 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
             "# X X X X X X X #",
             "# # # # # # # # #"
     );
-    protected List<ConfigGuiItem> items = List.of(
-            new ConfigGuiItem()
-                    .ingredientCharacter('#')
-                    .material(Material.GRAY_STAINED_GLASS_PANE)
-                    .displayName(" "),
-            new ConfigGuiItem()
+    protected Map<String, ConfigGuiItem> items = Map.of(
+            "decoration-item", ConfigItems.GLASS_PANE_DECORATION,
+            "example-item", new ConfigGuiItem()
                     .ingredientCharacter('X')
                     .material(Material.DIAMOND)
                     .displayName("<green>Example Item")
                     .lore(List.of("<gray>Example Lore."))
                     .actions("example_action")
     );
+
+    private transient boolean loaded = false;
 
     public String getTitle() {
         return title;
@@ -38,7 +39,10 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
         return shape;
     }
 
-    public List<ConfigGuiItem> getItems() {
+    public Map<String, ConfigGuiItem> getItems() {
+        if (loaded) return items;
+        items.forEach((s, item) -> item.setId(s));
+        this.loaded = true;
         return items;
     }
 
@@ -50,7 +54,7 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
         this.shape = shape;
     }
 
-    public void setItems(List<ConfigGuiItem> items) {
+    public void setItems(Map<String, ConfigGuiItem> items) {
         this.items = items;
     }
 }

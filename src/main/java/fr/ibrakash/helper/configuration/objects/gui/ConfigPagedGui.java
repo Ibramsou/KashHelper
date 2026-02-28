@@ -8,6 +8,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @ConfigSerializable
 public class ConfigPagedGui extends AbstractGuiConfig {
@@ -18,10 +19,10 @@ public class ConfigPagedGui extends AbstractGuiConfig {
 
     public ConfigPagedGui() {
         this.shape = ConfigGuiShapes.PAGED_SHAPE;
-        this.items = List.of(
-                ConfigItems.GLASS_PANE_DECORATION,
-                ConfigItems.PREVIOUS_PAGE,
-                ConfigItems.NEXT_PAGE
+        this.items = Map.of(
+                "decoration", ConfigItems.GLASS_PANE_DECORATION,
+                "previous-page", ConfigItems.PREVIOUS_PAGE,
+                "next-page", ConfigItems.NEXT_PAGE
         );
     }
 

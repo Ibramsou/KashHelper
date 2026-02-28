@@ -1,80 +1,83 @@
 paged-gui:
-  # Paged Menu Title
   title: '<gray>Example Title: <white>%player%'
-  # Menu Shape
   shape:
     - '# # # # # # # # #'
     - '# X X X X X X X #'
     - '# X X X X X X X #'
     - '# # P # F # N # #'
-  # Paged Item Configuration
   paged-item:
-    shape-id: X # Character ID matching the shape (every 'X' from the shape will be filled by this item).
+    shape-character: X
     actions:
-      - switch_item:I # Replace the clicked item by another from the item list (I in this case).
-    material: '%material_name%' # Parsed by the code
+      - switch_item:get-back
+    material: '%material_name%'
     amount: 1
     unbreakable: false
     display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
     lore:
       - '<gray>Item #%page_item_number%'
-      - '<gray>You are:<white> %player%'
-    # Custom Model Data Components For Custom Models
+      - <gray>You are:<white> %player%
     model-components:
       floats: []
       strings: []
       flags: []
   filters:
     blocks:
-      selected-entry: '<green>- %mode%'
-      un-selected-entry: '<gray>- %mode%'
+      selected-entry: <green>- %mode%
+      un-selected-entry: <gray>- %mode%
       modes:
         - text: All
-          streams: [sort_names]
+          streams:
+            - sort_names
         - text: Ores
-          streams: [ores_only, sort_diamonds, sort_names]
+          streams:
+            - ores_only
+            - sort_diamonds
+            - sort_names
         - text: Wood
-          streams: [wood_only, sort_names]
+          streams:
+            - wood_only
+            - sort_names
   items:
-    - shape-id: 'F'
-      display-name: '<gold>Filter'
+    filter:
+      shape-character: F
+      display-name: <gold>Filter
       lore:
         - '%filter_lore:blocks%'
       actions:
-        - 'change_filter_mode:blocks'
-    # Decoration Item
-    - shape-id: '#' # Ingredient matching the shape
+        - change_filter_mode:blocks
+    get-back:
+      shape-character: I
+      display-name: <green>Get Item Back
+      material: DIAMOND
+      actions:
+        - switch_item:paged-item
+        - reload_items
+    decoration:
+      shape-character: '#'
       actions: []
       material: GRAY_STAINED_GLASS_PANE
       amount: 1
       unbreakable: false
       display-name: ' '
       lore: []
-    # Previous Page Item
-    - shape-id: P
+    previous-page:
+      shape-character: P
       actions:
         - previous_page
-      material: "skin_texture:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGUxZGZjMTFhODM3MTExZDIyYjAwMWExNDQ2MWY5YTdmYzA5MzUyMmY4OGM1OGZhZWZkNmFkZWZmY2Q0ZTlhYiJ9fX0="
+      material: skin_texture:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGUxZGZjMTFhODM3MTExZDIyYjAwMWExNDQ2MWY5YTdmYzA5MzUyMmY4OGM1OGZhZWZkNmFkZWZmY2Q0ZTlhYiJ9fX0=
       amount: 1
       unbreakable: false
       display-name: <gray>Previous Page
       lore: []
-    # Next Page Item
-    - shape-id: N
+    next-page:
+      shape-character: N
       actions:
         - next_page
-      material: "skin_texture:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2M2OWQ0MTA3NmE4ZGVhNGYwNmQzZjFhOWFjNDdjYzk5Njk4OGI3NGEwOTEzYWIyYWMxYTc0Y2FmNzA4MTkxOCJ9fX0="
+      material: skin_texture:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2M2OWQ0MTA3NmE4ZGVhNGYwNmQzZjFhOWFjNDdjYzk5Njk4OGI3NGEwOTEzYWIyYWMxYTc0Y2FmNzA4MTkxOCJ9fX0=
       amount: 1
       unbreakable: false
       display-name: <gray>Next Page
       lore: []
-    # Example of an item switch
-    - shape-id: I
-      display-name: "<green>Get Item Back"
-      material: DIAMOND
-      actions:
-        - switch_item:X # Will get back to the clicked paginated item
-        - reload_items
 normal-gui:
   title: <green>Normal Gui
   shape:
@@ -82,7 +85,8 @@ normal-gui:
     - '# . . . X . . . #'
     - '# # # # # # # # #'
   items:
-    - shape-id: X
+    click:
+      shape-character: X
       actions:
         - click_me
       material: PAPER
@@ -91,7 +95,8 @@ normal-gui:
       display-name: <red>Click Me
       lore:
         - <green>Don't click me
-    - shape-id: '#'
+    decoration:
+      shape-character: '#'
       actions: []
       material: GRAY_STAINED_GLASS_PANE
       amount: 1

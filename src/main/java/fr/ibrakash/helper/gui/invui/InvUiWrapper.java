@@ -22,9 +22,9 @@ public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B
     public G build() {
         B builder = this.createBuilder();
         builder.setStructure(this.config.getShape().toArray(String[]::new));
-        this.config.getItems().forEach(configGuiItem -> {
+        this.config.getItems().values().forEach(configGuiItem -> {
             InvUiItem item = new InvUiItem(this, configGuiItem);
-            builder.addIngredient(configGuiItem.getShapeId(), item);
+            builder.addIngredient(configGuiItem.getShapeCharacter(), item);
             this.items.add(item);
         });
 

@@ -32,7 +32,7 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
 
     @Override
     protected void additionalData(PagedGui.Builder<Item> builder) {
-        builder.addIngredient(this.config.getPagedItem().getShapeId(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
+        builder.addIngredient(this.config.getPagedItem().getShapeCharacter(), Markers.CONTENT_LIST_SLOT_HORIZONTAL)
                 .setContent(loadContents());
     }
 
