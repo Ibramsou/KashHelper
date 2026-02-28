@@ -1,5 +1,7 @@
 package fr.ibrakash.helper.configuration;
 
+import fr.ibrakash.helper.configuration.objects.action.ConfigGroupAction;
+import fr.ibrakash.helper.configuration.serialization.ActionSerializer;
 import fr.ibrakash.helper.configuration.serialization.SoundSerializer;
 import fr.ibrakash.helper.configuration.serialization.WorldSerializer;
 import org.bukkit.Sound;
@@ -26,6 +28,7 @@ public class ConfigurationUtils {
     public static final Consumer<TypeSerializerCollection.Builder> BUKKIT_SERIALIZERS = builder -> {
         builder.register(World.class, WorldSerializer.get());
         builder.register(Sound.class, SoundSerializer.get());
+        builder.register(ConfigGroupAction.class, ActionSerializer.get());
         builder.registerAnnotatedObjects(ObjectMapper.factory());
     };
 

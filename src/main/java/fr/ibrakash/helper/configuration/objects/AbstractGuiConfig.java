@@ -1,5 +1,6 @@
 package fr.ibrakash.helper.configuration.objects;
 
+import fr.ibrakash.helper.configuration.objects.action.ConfigAction;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.item.ConfigItems;
 import fr.ibrakash.helper.configuration.objects.stream.ConfigStream;
@@ -26,7 +27,7 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
                     .material(Material.DIAMOND)
                     .displayName("<green>Example Item")
                     .lore(List.of("<gray>Example Lore."))
-                    .actions("example_action")
+                    .actions(new ConfigAction().execute(List.of("example_action")))
     );
 
     private transient boolean loaded = false;

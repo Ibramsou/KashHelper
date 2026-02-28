@@ -26,6 +26,7 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
         }
         this.config.getItems().values().forEach(this::registerItemSwitcher);
         this.setAction("refresh", (issuer, type, event, item) -> this.refresh());
+        this.setAction("close_inventory", (issuer, type, event, item) -> issuer.closeInventory());
     }
 
     private void registerItemSwitcher(ConfigGuiItem item) {
@@ -47,11 +48,8 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     }
 
     public void doActions(ConfigGuiItem item, Player player, InventoryClickEvent event, GuiItemWrapper wrapper) {
-        this.doActions(item.getActions(), player, event, wrapper);
-    }
-
-    public void doActions(List<String> actions, Player player, InventoryClickEvent event, GuiItemWrapper wrapper) {
-        actions.forEach(key -> this.doAction(key, player, event, wrapper));
+        item.getActions().runActions(event.getClick(), execute ->
+                this.doAction(execute, player, event, wrapper));
     }
 
     public void doAction(String key, Player player, InventoryClickEvent event, GuiItemWrapper wrapper) {

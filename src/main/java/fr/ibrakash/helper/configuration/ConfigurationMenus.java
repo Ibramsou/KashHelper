@@ -50,7 +50,7 @@ public abstract class ConfigurationMenus {
                     throw new  IllegalArgumentException("Invalid GUI configuration: " + path);
                 }
             } catch (SerializationException e) {
-                throw new IllegalArgumentException("Invalid GUI configuration: " + path);
+                throw new IllegalArgumentException("Invalid GUI configuration: " + path, e);
             }
         });
     }

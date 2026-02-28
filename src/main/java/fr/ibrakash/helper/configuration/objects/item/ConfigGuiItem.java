@@ -1,25 +1,33 @@
 package fr.ibrakash.helper.configuration.objects.item;
 
 import fr.ibrakash.helper.configuration.objects.AbstractConfigItem;
+import fr.ibrakash.helper.configuration.objects.action.ConfigAction;
+import fr.ibrakash.helper.configuration.objects.action.ConfigGroupAction;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @ConfigSerializable
 public class ConfigGuiItem extends AbstractConfigItem {
 
     private char shapeCharacter = 'A';
-    private List<String> actions = new ArrayList<>();
+    private ConfigGroupAction actions = new ConfigGroupAction();
 
     private transient String id;
 
     public ConfigGuiItem() {}
 
     public ConfigGuiItem actions(String... actions) {
-        this.actions = List.of(actions);
+        this.actions.getActions().add(new ConfigAction().execute(List.of(actions)));
+        return this;
+    }
+
+    public ConfigGuiItem actions(ConfigAction... actions) {
+        this.actions.getActions().addAll(List.of(actions));
         return this;
     }
 
@@ -77,16 +85,12 @@ public class ConfigGuiItem extends AbstractConfigItem {
         return shapeCharacter;
     }
 
-    public List<String> getActions() {
+    public ConfigGroupAction getActions() {
         return actions;
     }
 
     public void setShapeCharacter(char shapeCharacter) {
         this.shapeCharacter = shapeCharacter;
-    }
-
-    public void setActions(List<String> actions) {
-        this.actions = actions;
     }
 
     public String getId() {
