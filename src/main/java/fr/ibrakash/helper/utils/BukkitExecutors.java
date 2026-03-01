@@ -24,4 +24,22 @@ public final class BukkitExecutors {
         Executor main = mainThread(plugin);
         return future.thenComposeAsync(CompletableFuture::completedFuture, main);
     }
+
+    public static void ensureAsync(Executor executor, Runnable runnable) {
+        if (Bukkit.isPrimaryThread()) {
+            executor.execute(runnable);
+            return;
+        }
+
+        runnable.run();
+    }
+
+    public static void ensureAsync(Runnable runnable, Plugin plugin) {
+        if (Bukkit.isPrimaryThread()) {
+            Bukkit.getServer().getAsyncScheduler().runNow(plugin, scheduledTask -> runnable.run());
+            return;
+        }
+
+        runnable.run();
+    }
 }
