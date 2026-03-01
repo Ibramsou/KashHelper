@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'fr.ibrakash.helper'
-version = '1.4.0'
+version = '1.6.0'
 
 repositories {
     mavenCentral()
@@ -22,14 +22,22 @@ java {
 }
 
 dependencies {
+    // Paper API
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
 
+    // Configuration Libraries
     compileOnly 'org.spongepowered:configurate-core:4.2.0'
     compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
     compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
     compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
 
+    // Inventory Library
     implementation "xyz.xenondevs.invui:invui:1.49"
+
+    // SQL Libraries & drivers
+    compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+    compileOnly 'mysql:mysql-connector-java:8.0.29'
+    compileOnly 'com.zaxxer:HikariCP:5.0.1'
 }
 
 tasks.jar {
