@@ -86,7 +86,12 @@ public class StreamFilter<V> {
             ConfigFilterMode mode = this.filterModes.getOrDefault(configFilter.getFilterId(), configFilter.getModes().getFirst());
             if (mode == null || mode.getStreams().isEmpty()) continue;
             for (String filterMode : mode.getStreams()) {
-                this.combiners.get(filterMode).accept(combiner);
+                StreamConsumer<V> consumer = this.combiners.get(filterMode);
+                if (consumer == null) {
+                    System.out.println("Filter type " + filterMode + " not found");
+                    continue;
+                }
+                consumer.accept(combiner);
             }
         }
 

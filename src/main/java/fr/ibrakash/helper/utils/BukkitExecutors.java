@@ -7,22 +7,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class BukkitExecutors {
-
-    public static Executor mainThread(Plugin plugin) {
-        return task -> {
-            if (Bukkit.isPrimaryThread()) task.run();
-            else Bukkit.getScheduler().runTask(plugin, task);
-        };
-    }
     
     public static <T> CompletableFuture<T> hopToMain(CompletableFuture<T> future, Plugin plugin, boolean keepAsync) {
-        if (keepAsync) return future;
-        return hopToMain(future, plugin);
+        return keepAsync ? future :
+                future.thenApplyAsync(v -> v, r -> Bukkit.getGlobalRegionScheduler().run(plugin, scheduledTask -> r.run()));
     }
 
     public static <T> CompletableFuture<T> hopToMain(CompletableFuture<T> future, Plugin plugin) {
-        Executor main = mainThread(plugin);
-        return future.thenComposeAsync(CompletableFuture::completedFuture, main);
+        return hopToMain(future, plugin, false);
     }
 
     public static void ensureAsync(Executor executor, Runnable runnable) {

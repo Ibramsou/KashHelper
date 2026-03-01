@@ -25,6 +25,8 @@ dependencies {
     // Paper API
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
 
+    compileOnly("net.kyori:adventure-api:4.26.1")
+
     // Configuration Libraries
     compileOnly 'org.spongepowered:configurate-core:4.2.0'
     compileOnly 'org.spongepowered:configurate-yaml:4.2.0'

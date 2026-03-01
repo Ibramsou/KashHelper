@@ -9,7 +9,6 @@ public class ConfigGroupAction {
 
     private List<ConfigAction> actions = new ArrayList<>(List.of(
             new ConfigAction()
-                    .execute(List.of("refresh"))
     ));
     private final Map<ClickType, List<ConfigAction>> clickActionMap = new EnumMap<>(ClickType.class);
 
