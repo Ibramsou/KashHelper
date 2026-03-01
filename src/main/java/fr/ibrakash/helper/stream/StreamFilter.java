@@ -6,7 +6,6 @@ import fr.ibrakash.helper.configuration.objects.stream.ConfigFilterMode;
 import fr.ibrakash.helper.configuration.objects.stream.ConfigStream;
 import fr.ibrakash.helper.gui.GuiWrapper;
 
-import javax.naming.Name;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -49,7 +48,7 @@ public class StreamFilter<V> {
     public StreamFilter<V> setupGui(GuiWrapper<?, ?, ?> wrapper) {
         this.config.loadFilters(( filter) -> {
             final String id = filter.getFilterId();
-            wrapper.setAction("change_filter_mode:" + id, (issuer, type, event, item) -> {
+            wrapper.action("change_filter_mode:" + id, (issuer, type, event, item) -> {
                 StreamFilterUtil.changeFilterMode(this, filter.getFilterId(), !type.isRightClick());
                 wrapper.refresh();
             });

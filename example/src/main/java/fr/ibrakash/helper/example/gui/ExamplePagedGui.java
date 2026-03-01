@@ -32,9 +32,18 @@ public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
                         stream.sort(Comparator.comparingInt(material -> material.name().contains("DIAMOND") ? 0 : 1)))
                 .add("sort_names", stream -> stream.sort(Comparator.comparing(Material::name)));
 
-        this.setAction("reload_items", (issuer, type, event, item) -> {
+        this.action("reload_items", (issuer, type, event, item) -> {
             this.diamond = !this.diamond;
             this.refresh();
+        });
+
+        this.pagedAction("close_and_message", (object, issuer, type, event, item) -> {
+            issuer.closeInventory();
+            issuer.sendMessage(TextUtil.replacedComponent("<green>Closed on " + object.name()));
+        });
+
+        this.pagedAction("message", (object, issuer, type, event, item) -> {
+            issuer.sendMessage(TextUtil.replacedComponent("<green>Closed on " + object.name()));
         });
 
         this.replacer.add("%player%", player.getName());
@@ -59,10 +68,5 @@ public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
     @Override
     public TextReplacer pagedReplacer(Material material) {
         return TextReplacer.of(this.replacer).add("%material_name%", material.name());
-    }
-
-    @Override
-    public void clickPagedObject(Player issuer, Material object, ClickType type, InventoryClickEvent event) {
-        issuer.sendMessage(TextUtil.replacedComponent("<green>Clicked on: <gray>%material%", "%material%", object.name()));
     }
 }

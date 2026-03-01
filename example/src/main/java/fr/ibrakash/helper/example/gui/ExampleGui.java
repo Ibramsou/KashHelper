@@ -9,7 +9,7 @@ public class ExampleGui extends NormalInvUiWrapper {
     public ExampleGui() {
         super(ExampleMenus.get().getNormal("normal-gui"));
 
-        this.setAction("click_me", (issuer, type, event, item) ->
+        this.action("click_me", (issuer, type, event, item) ->
                 issuer.sendMessage(TextUtil.replacedComponent("<red>Why did you click?"))
         );
     }
