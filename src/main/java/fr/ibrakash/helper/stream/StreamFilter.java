@@ -78,7 +78,9 @@ public class StreamFilter<V> {
 
     private List<V> applyFilters(Stream<V> stream, Supplier<List<V>> defaultValue) {
         if (this.config.getFilters().isEmpty()) return defaultValue.get();
-        StreamCombiner<V> combiner = null;
+        StreamConsumer<V> defaultConsumer = this.combiners.get("default");
+        StreamCombiner<V> combiner = defaultConsumer == null ? null : new StreamCombiner<>(stream);
+        if (defaultConsumer != null) defaultConsumer.accept(combiner);
         for (ConfigFilter configFilter : this.config.getFilters().values()) {
             if (combiner == null) combiner = new StreamCombiner<>(stream);
             if (configFilter == null || configFilter.getModes().isEmpty()) return defaultValue.get();
