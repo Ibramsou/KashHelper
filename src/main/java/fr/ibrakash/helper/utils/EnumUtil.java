@@ -5,9 +5,13 @@ public class EnumUtil {
     public static String friendlyName(Enum<?> e) {
         StringBuilder sb = new StringBuilder();
         for (String string : e.name().split("_")) {
-            sb.append(string.substring(0, 1).toUpperCase()).append(string.substring(1).toLowerCase());
+            sb.append(string.substring(0, 1).toUpperCase())
+                    .append(string.substring(1).toLowerCase())
+                    .append(" ");
         }
 
-        return sb.toString();
+        if (sb.isEmpty()) return sb.toString();
+
+        return sb.delete(sb.length() - 1, sb.length()).toString();
     }
 }

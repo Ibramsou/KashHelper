@@ -32,10 +32,6 @@ paged-gui:
       lore:
         - '<gray>Item #%page_item_number%'
         - <gray>You are:<white> %player%
-      model-components:
-        floats: [ ]
-        strings: [ ]
-        flags: [ ]
     filter:
       shape-character: F
       display-name: <gold>Filter

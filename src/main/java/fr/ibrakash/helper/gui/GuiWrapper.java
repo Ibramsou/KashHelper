@@ -2,6 +2,7 @@ package fr.ibrakash.helper.gui;
 
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.AbstractGuiConfig;
+import fr.ibrakash.helper.item.replacer.ItemReplacer;
 import fr.ibrakash.helper.text.TextReplacer;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -13,7 +14,8 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
 
     protected final C config;
     protected final Map<String, GuiActionConsumer> actions = new LinkedHashMap<>();
-    protected final TextReplacer replacer = TextReplacer.create();
+    protected final TextReplacer textReplacer = TextReplacer.create();
+    protected final ItemReplacer itemReplacer = ItemReplacer.create();
 
     protected G gui;
     protected W window;
@@ -32,9 +34,12 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     }
 
     public TextReplacer replacer() {
-        return replacer;
+        return textReplacer;
     }
 
+    public ItemReplacer itemReplacer() {
+        return itemReplacer;
+    }
     public void action(String key, GuiActionConsumer consumer) {
         this.actions.put(key, consumer);
     }
@@ -61,8 +66,10 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
         this.window = this.createWindow(player);
     }
 
+    public abstract void close();
+
     public Component title() {
-        return this.replacer.deserialize(this.config.getTitle());
+        return this.textReplacer.deserialize(this.config.getTitle());
     }
 
     protected abstract G build();
@@ -70,6 +77,8 @@ public abstract class GuiWrapper<G, C extends AbstractGuiConfig, W> {
     protected abstract W createWindow(Player player);
 
     public abstract void refresh();
+
+    public abstract void handleClose(boolean byPlayer);
 
     public C getConfig() {
         return config;

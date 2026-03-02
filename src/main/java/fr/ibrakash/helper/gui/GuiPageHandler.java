@@ -1,5 +1,6 @@
 package fr.ibrakash.helper.gui;
 
+import fr.ibrakash.helper.item.replacer.ListedItemReplacer;
 import fr.ibrakash.helper.text.TextReplacer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -11,17 +12,17 @@ import java.util.Optional;
 
 public interface GuiPageHandler<O> {
 
-    default void listPageObjects(PagedItemConsumer consumer) {
+    default void listPageObjects(PagedItemConsumer<O> consumer) {
         List<GuiPagedObject<O>> objects = this.loadPageObjects();
 
         for (int i = 0; i < objects.size(); i++) {
             GuiPagedObject<O> object = objects.get(i);
             TextReplacer replacer = TextReplacer.create()
-                    .merge(this.pagedReplacer(object.object()))
+                    .merge(this.pagedTextReplacer(object.object()))
                     .add("%page_item_index%", i)
                     .add("%page_item_number%", i + 1);
 
-            consumer.accept(replacer, object.consumer());
+            consumer.accept(replacer, object);
         }
     }
 
@@ -61,7 +62,9 @@ public interface GuiPageHandler<O> {
 
     List<O> getPagedObjects();
 
-    TextReplacer pagedReplacer(O object);
+    TextReplacer pagedTextReplacer(O object);
+
+    ListedItemReplacer<O> pagedItemReplacer();
 
     default void clickPagedObject(Player issuer, O object, ClickType type, InventoryClickEvent event) {}
 
@@ -74,7 +77,7 @@ public interface GuiPageHandler<O> {
     void previousPage();
 
     @FunctionalInterface
-    interface PagedItemConsumer {
-        void accept(TextReplacer replacer, GuiActionConsumer clickConsumer);
+    interface PagedItemConsumer<O> {
+        void accept(TextReplacer replacer, GuiPagedObject<O> pagedObject);
     }
 }

@@ -1,19 +1,16 @@
 package fr.ibrakash.helper.configuration.objects;
 
+import fr.ibrakash.helper.item.AbstractItemReplacer;
+import fr.ibrakash.helper.item.replacer.ItemReplacer;
 import fr.ibrakash.helper.text.TextReplacer;
 import fr.ibrakash.helper.utils.ItemModelComponents;
-import fr.ibrakash.helper.utils.MaterialUtil;
-import fr.ibrakash.helper.utils.PlayerProfileCache;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 public class AbstractConfigItem {
 
     // TODO: Add custom item parser (ItemsAdder, Oraxen etc.)
@@ -25,37 +22,26 @@ public class AbstractConfigItem {
     protected List<String> lore = new ArrayList<>();
     protected ItemModelComponents modelComponents = new ItemModelComponents();
 
-    @SuppressWarnings("UnstableApiUsage")
-    public ItemStack build(TextReplacer replacer) {
-        ItemStack itemStack;
-        if (this.material.contains(":")) {
-            String[] split = this.material.split(":");
-            String type =  split[0];
-            String input = split[1];
+    public ItemStack build(TextReplacer textReplacer) {
+        return this.build(textReplacer, ItemReplacer.empty());
+    }
 
-            itemStack = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
-            switch (type) {
-                case "skin_texture" -> meta.setPlayerProfile(PlayerProfileCache.fetchTextureSkin(input));
-                case "uuid_skin" -> meta.setPlayerProfile(PlayerProfileCache.fetchTextureSkin(UUID.fromString(input)).join());
-                case "username_skin" -> meta.setPlayerProfile(PlayerProfileCache.fetchUsernameSkin(input).join());
-                default -> throw new IllegalArgumentException("Invalid skin type: " + material);
-            }
-            itemStack.setItemMeta(meta);
-        } else if (this.material.startsWith("%") && this.material.endsWith("%")) {
-            itemStack = new ItemStack(MaterialUtil.parseOrThrow(replacer.apply(this.material)));
-        } else {
-            itemStack = new ItemStack(MaterialUtil.parseOrThrow(this.material));
-        }
+    public ItemStack build(TextReplacer textReplacer, ItemReplacer itemReplacer) {
+        return this.build(textReplacer, itemReplacer, null);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public <V> ItemStack build(TextReplacer textReplacer, AbstractItemReplacer<V> itemReplacer, V value) {
+        ItemStack itemStack = itemReplacer.createItemStack(value, this.material);
         if (this.amount == 0) throw new IllegalArgumentException("ItemStack amount must be over 0");
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(this.unbreakable);
         if (this.displayName != null && !displayName.isEmpty()) {
-            meta.displayName(replacer.deserializeItemName(this.displayName));
+            meta.displayName(textReplacer.deserializeItemName(this.displayName));
         }
 
         if (!this.lore.isEmpty()) {
-            meta.lore(replacer.deserializeItemLore(this.lore));
+            meta.lore(textReplacer.deserializeItemLore(this.lore));
         }
 
         // TODO: Add a wrapper for legacy versions

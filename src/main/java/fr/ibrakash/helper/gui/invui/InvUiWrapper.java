@@ -13,6 +13,7 @@ import java.util.List;
 public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B extends Gui.Builder<?, ?>> extends GuiWrapper<G, C, Window> {
 
     private final List<InvUiItem> items = new ArrayList<>();
+    private boolean closedByPlayer = true;
 
     public InvUiWrapper(C config) {
         super(config);
@@ -22,8 +23,10 @@ public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B
     public G build() {
         B builder = this.createBuilder();
         builder.setStructure(this.config.getShape().toArray(String[]::new));
+
         this.config.getItems().values().forEach(configGuiItem -> {
-            InvUiItem item = new InvUiItem(this, configGuiItem);
+            InvUiItem item = new InvUiItem(this, configGuiItem, configItem ->
+                    configItem.build(this.textReplacer, this.itemReplacer));
             builder.addIngredient(configGuiItem.getShapeCharacter(), item);
             this.items.add(item);
         });
@@ -40,6 +43,7 @@ public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B
                 .setGui(this.gui)
                 .setTitle(new AdventureComponentWrapper(this.title()))
                 .build();
+        window.addCloseHandler(() -> this.handleClose(this.closedByPlayer));
         window.open();
         return window;
     }
@@ -49,6 +53,13 @@ public abstract class InvUiWrapper<G extends Gui, C extends AbstractGuiConfig, B
         if (this.window == null) return;
         this.window.changeTitle(new AdventureComponentWrapper(this.title()));
         this.items.forEach(InvUiItem::updateItem);
+    }
+
+    @Override
+    public void close() {
+        this.closedByPlayer = false;
+        this.window.close();
+        this.closedByPlayer = true;
     }
 
     protected void additionalData(B builder) {}

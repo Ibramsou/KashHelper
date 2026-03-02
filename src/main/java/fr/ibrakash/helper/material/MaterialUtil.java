@@ -1,4 +1,4 @@
-package fr.ibrakash.helper.utils;
+package fr.ibrakash.helper.material;
 
 import org.bukkit.Material;
 
@@ -8,11 +8,24 @@ import java.util.function.Supplier;
 public class MaterialUtil {
 
     private static final Map<String, Set<Material>> toolsMaterials = new HashMap<>();
+    private static final Map<MaterialType, Set<Material>> materialTypes = new EnumMap<>(MaterialType.class);
 
     static {
         for (Material value : Material.values()) {
             String name = value.name();
             if (name.startsWith("LEGACY_")) continue;
+
+            for (MaterialType materialType : MaterialType.values()) {
+                for (String s : materialType.getContent()) {
+                    if (name.contains(s)) {
+                        materialTypes.computeIfAbsent(materialType,
+                                type -> EnumSet.noneOf(Material.class))
+                                .add(value);
+                    }
+                }
+
+            }
+
             if (name.contains("SWORD")) {
                 registerTool("sword", value);
             } else if (name.contains("PICKAXE")) {
@@ -23,6 +36,14 @@ public class MaterialUtil {
                 registerTool("hoe", value);
             }
         }
+    }
+
+    public static Set<Material> getMaterials(MaterialType type) {
+        return materialTypes.getOrDefault(type, Collections.emptySet());
+    }
+
+    public static boolean isType(Material material, MaterialType materialType) {
+        return materialTypes.get(materialType).contains(material);
     }
 
     private static void registerTool(String identifier, Material material) {

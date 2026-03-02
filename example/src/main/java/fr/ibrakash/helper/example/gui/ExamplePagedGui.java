@@ -2,14 +2,16 @@ package fr.ibrakash.helper.example.gui;
 
 import fr.ibrakash.helper.example.ExampleMenus;
 import fr.ibrakash.helper.gui.invui.wrapper.PagedInvUiWrapper;
+import fr.ibrakash.helper.item.ItemUtil;
+import fr.ibrakash.helper.item.replacer.ListedItemReplacer;
+import fr.ibrakash.helper.material.MaterialUtil;
 import fr.ibrakash.helper.stream.StreamFilter;
 import fr.ibrakash.helper.text.TextReplacer;
 import fr.ibrakash.helper.text.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Comparator;
 import java.util.List;
@@ -39,20 +41,23 @@ public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
 
         this.pagedAction("close_and_message", (object, issuer, type, event, item) -> {
             issuer.closeInventory();
-            issuer.sendMessage(TextUtil.replacedComponent("<green>Closed on " + object.name()));
+            issuer.sendMessage(TextUtil.replacedComponent("<green>Closed on " + ItemUtil.extractName(new ItemStack(object))));
         });
 
         this.pagedAction("message", (object, issuer, type, event, item) -> {
             issuer.sendMessage(TextUtil.replacedComponent("<green>Closed on " + object.name()));
         });
 
-        this.replacer.add("%player%", player.getName());
+        this.textReplacer.add("%player%", player.getName());
     }
 
     @Override
     public Component title() {
-        return this.diamond ? this.replacer.deserialize("<green>Super Diamond: <white>%player%") : super.title();
+        return this.diamond ? this.textReplacer.deserialize("<green>Super Diamond: <white>%player%") : super.title();
     }
+
+    @Override
+    public void handleClose(boolean byPlayer) {}
 
     @Override
     public List<Material> getPagedObjects() {
@@ -66,7 +71,13 @@ public class ExamplePagedGui extends PagedInvUiWrapper<Material> {
     }
 
     @Override
-    public TextReplacer pagedReplacer(Material material) {
-        return TextReplacer.of(this.replacer).add("%material_name%", material.name());
+    public TextReplacer pagedTextReplacer(Material material) {
+        return TextReplacer.of(this.textReplacer);
+    }
+
+    @Override
+    public ListedItemReplacer<Material> pagedItemReplacer() {
+        return ListedItemReplacer.<Material>create()
+                .material("%material_name%", o -> MaterialUtil.parseOrThrow(o.name()));
     }
 }

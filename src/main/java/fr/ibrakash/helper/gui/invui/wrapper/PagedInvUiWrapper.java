@@ -7,6 +7,7 @@ import fr.ibrakash.helper.gui.GuiPagedActionConsumer;
 import fr.ibrakash.helper.gui.GuiPagedObject;
 import fr.ibrakash.helper.gui.invui.InvUiItem;
 import fr.ibrakash.helper.gui.invui.InvUiWrapper;
+import fr.ibrakash.helper.item.replacer.ListedItemReplacer;
 import xyz.xenondevs.invui.gui.PagedGui;
 import xyz.xenondevs.invui.gui.structure.Markers;
 import xyz.xenondevs.invui.item.Item;
@@ -78,10 +79,14 @@ public abstract class PagedInvUiWrapper<O> extends InvUiWrapper<PagedGui<Item>, 
 
             List<Item> contents = new ArrayList<>(objects.size());
 
-            this.listPageObjects((replacers, clickConsumer) -> {
-                InvUiItem item = new InvUiItem(this, pagedItem);
-                item.setCustomReplacers(replacers);
-                item.setDefaultConsumer(clickConsumer);
+            ListedItemReplacer<O> itemReplacer = this.pagedItemReplacer();
+
+            this.listPageObjects((replacers, pagedObject) -> {
+                InvUiItem item = new InvUiItem(this, pagedItem,
+                        configItem -> itemReplacer == null ?
+                                configItem.build(replacers, this.itemReplacer) :
+                                configItem.build(replacers, itemReplacer, pagedObject.object()));
+                item.setDefaultConsumer(pagedObject.consumer());
                 contents.add(item);
             });
 

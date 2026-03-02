@@ -9,12 +9,15 @@ import fr.ibrakash.helper.text.TextReplacer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.item.ItemProvider;
 import xyz.xenondevs.invui.item.builder.ItemBuilder;
 import xyz.xenondevs.invui.item.impl.AbstractItem;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class InvUiItem extends AbstractItem implements GuiItemWrapper {
 
@@ -22,21 +25,18 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
     private final ConfigGuiItem defaultItem;
     private ConfigGuiItem item;
     private GuiActionConsumer defaultConsumer;
-    private TextReplacer customReplacers;
+    private final Function<ConfigGuiItem, ItemStack> itemBuilder;
 
-    public InvUiItem(GuiWrapper<?, ?, ?> wrapper, ConfigGuiItem item) {
+    public InvUiItem(GuiWrapper<?, ?, ?> wrapper, ConfigGuiItem item, Function<ConfigGuiItem, ItemStack> itemBuilder) {
         this.wrapper = wrapper;
         this.item = item;
         this.defaultItem = item;
+        this.itemBuilder = itemBuilder;
     }
 
     @Override
     public ItemProvider getItemProvider() {
-        return new ItemBuilder(
-                this.customReplacers == null ?
-                        this.item.build(this.wrapper.replacer()) :
-                        this.item.build(this.customReplacers)
-        );
+        return new ItemBuilder(this.itemBuilder.apply(this.item));
     }
 
     @Override
@@ -71,9 +71,5 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
 
     public void setDefaultConsumer(GuiActionConsumer defaultConsumer) {
         this.defaultConsumer = defaultConsumer;
-    }
-
-    public void setCustomReplacers(TextReplacer customReplacers) {
-        this.customReplacers = customReplacers;
     }
 }

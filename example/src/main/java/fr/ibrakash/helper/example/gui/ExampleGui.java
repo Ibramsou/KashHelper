@@ -13,4 +13,7 @@ public class ExampleGui extends NormalInvUiWrapper {
                 issuer.sendMessage(TextUtil.replacedComponent("<red>Why did you click?"))
         );
     }
+
+    @Override
+    public void handleClose(boolean byPlayer) {}
 }
