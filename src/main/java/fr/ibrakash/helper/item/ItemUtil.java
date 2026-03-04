@@ -5,6 +5,8 @@ import fr.ibrakash.helper.utils.PlayerProfileCache;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -13,6 +15,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class ItemUtil {
+
+    public static ItemStack setGlow(ItemStack item, boolean glow) {
+        if (item == null) return null;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+
+        if (glow) {
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        } else {
+            meta.removeEnchant(Enchantment.UNBREAKING);
+            meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+
+        item.setItemMeta(meta);
+        return item;
+    }
 
     @SuppressWarnings("UnstableApiUsage")
     public static ItemStack extraModelOnly(ItemStack itemStack) {

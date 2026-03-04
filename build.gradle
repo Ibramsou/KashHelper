@@ -1,13 +1,11 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id "com.vanniktech.maven.publish.base" version "0.36.0"
-    id 'signing'
     id("com.gradleup.shadow") version "9.3.1"
 }
 
 group = 'fr.ibrakash.helper'
-version = '1.6.0'
+version = '1.6.1'
 
 repositories {
     mavenCentral()
@@ -22,21 +20,16 @@ java {
 }
 
 dependencies {
-    // Paper API
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+    compileOnly "net.kyori:adventure-api:4.26.1"
 
-    compileOnly("net.kyori:adventure-api:4.26.1")
-
-    // Configuration Libraries
     compileOnly 'org.spongepowered:configurate-core:4.2.0'
     compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
     compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
     compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
 
-    // Inventory Library
     implementation "xyz.xenondevs.invui:invui:1.49"
 
-    // SQL Libraries & drivers
     compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
     compileOnly 'mysql:mysql-connector-java:8.0.29'
     compileOnly 'com.zaxxer:HikariCP:5.0.1'
@@ -50,63 +43,55 @@ tasks.shadowJar {
     archiveClassifier.set("")
 }
 
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = "xyz.imrine"
-            artifactId = "Kash-Helper"
-            version = project.version.toString()
+            artifactId = "kash-helper"
 
             from components.shadow
 
             artifact(tasks.named("sourcesJar"))
             artifact(tasks.named("javadocJar"))
-        }
-    }
-}
 
-mavenPublishing {
-    publishToMavenCentral(true)
-
-    pom {
-        name.set("KashHelper")
-        description.set("Kash Helper is an helper library")
-        url.set("https://github.com/Ibramsou/KashHelper")
-
-        licenses {
-            license {
-                name.set("The Apache License, Version 2.0")
-                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            pom {
+                name = "KashHelper"
+                description = "Kash Helper is a helper library"
+                url = "https://github.com/Ibramsou/KashHelper"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "Bramsou"
+                        name = "Ibrahim"
+                        email = "braimsou@gmail.com"
+                    }
+                }
+                scm {
+                    url = "https://github.com/Ibramsou/KashHelper"
+                    connection = "scm:git:git://github.com/Ibramsou/KashHelper.git"
+                    developerConnection = "scm:git:ssh://github.com/Ibramsou/KashHelper.git"
+                }
             }
         }
+    }
 
-        developers {
-            developer {
-                id.set("Bramsou")
-                name.set("Ibrahim")
-                email.set("braimsou@gmail.com")
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Ibramsou/KashHelper")
+
+            credentials {
+                username = (findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR"))?.toString()
+                password = (findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN"))?.toString()
             }
         }
-
-        scm {
-            url.set("https://github.com/Ibramsou/KashHelper")
-            connection.set("scm:git:git://github.com/Ibramsou/KashHelper.git")
-            developerConnection.set("scm:git:ssh://github.com/Ibramsou/KashHelper.git")
-        }
     }
-}
-
-def signingKeyFile = findProperty("signingInMemoryKeyFile")?.toString()
-def signingPassword = findProperty("signingInMemoryKeyPassword")?.toString()
-
-signing {
-    if (signingKeyFile != null && file(signingKeyFile).exists()) {
-        def keyText = file(signingKeyFile).text
-        useInMemoryPgpKeys(keyText, signingPassword)
-        sign(publishing.publications)
-    }
-}
-
-tasks.withType(GenerateModuleMetadata).configureEach {
-    enabled = false
 }

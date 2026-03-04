@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.configuration.objects;
 
 import fr.ibrakash.helper.item.AbstractItemReplacer;
+import fr.ibrakash.helper.item.ItemUtil;
 import fr.ibrakash.helper.item.replacer.ItemReplacer;
 import fr.ibrakash.helper.text.TextReplacer;
 import fr.ibrakash.helper.utils.ItemModelComponents;
@@ -21,6 +22,7 @@ public class AbstractConfigItem {
     protected String displayName = "";
     protected List<String> lore = new ArrayList<>();
     protected ItemModelComponents modelComponents = new ItemModelComponents();
+    protected boolean glow = false;
 
     public ItemStack build(TextReplacer textReplacer) {
         return this.build(textReplacer, ItemReplacer.empty());
@@ -54,6 +56,10 @@ public class AbstractConfigItem {
         }
 
         itemStack.setItemMeta(meta);
+
+        if (this.glow) {
+            ItemUtil.setGlow(itemStack, true);
+        }
         return itemStack;
     }
 
