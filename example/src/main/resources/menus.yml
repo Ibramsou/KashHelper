@@ -25,7 +25,7 @@ paged-gui:
           execute: [ switch_item:get-back ]
         - click-types: [ RIGHT ]
           execute: [ change_filter_mode:blocks ]
-      material: '%material_name%'
+      item: '%material_name%'
       amount: 1
       unbreakable: false
       display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
@@ -42,7 +42,7 @@ paged-gui:
     get-back:
       shape-character: I
       display-name: <green>Get Item Back
-      material: DIAMOND
+      item: DIAMOND
       actions:
         - switch_item:paged-item
         - reload_items
@@ -57,7 +57,7 @@ normal-gui:
       shape-character: X
       actions:
         - click_me
-      material: PAPER
+      matitem: PAPER
       amount: 1
       unbreakable: false
       display-name: <red>Click Me

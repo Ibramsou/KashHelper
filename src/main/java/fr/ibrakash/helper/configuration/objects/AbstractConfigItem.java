@@ -2,6 +2,7 @@ package fr.ibrakash.helper.configuration.objects;
 
 import fr.ibrakash.helper.item.AbstractItemReplacer;
 import fr.ibrakash.helper.item.ItemUtil;
+import fr.ibrakash.helper.item.parser.CustomItemParser;
 import fr.ibrakash.helper.item.replacer.ItemReplacer;
 import fr.ibrakash.helper.text.TextReplacer;
 import fr.ibrakash.helper.utils.ItemModelComponents;
@@ -12,17 +13,18 @@ import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class AbstractConfigItem {
 
-    // TODO: Add custom item parser (ItemsAdder, Oraxen etc.)
-    //private String customId = "";
-    protected String material = Material.PAPER.name();
+    protected String item = Material.PAPER.name();
     protected int amount = 1;
     protected boolean unbreakable = false;
     protected String displayName = "";
     protected List<String> lore = new ArrayList<>();
     protected ItemModelComponents modelComponents = new ItemModelComponents();
     protected boolean glow = false;
+
+    private transient boolean vanillaItem = false;
 
     public ItemStack build(TextReplacer textReplacer) {
         return this.build(textReplacer, ItemReplacer.empty());
@@ -34,7 +36,12 @@ public class AbstractConfigItem {
 
     @SuppressWarnings("UnstableApiUsage")
     public <V> ItemStack build(TextReplacer textReplacer, AbstractItemReplacer<V> itemReplacer, V value) {
-        ItemStack itemStack = itemReplacer.createItemStack(value, this.material);
+        ItemStack customItem = this.vanillaItem ? null : CustomItemParser.byId(this.item);
+        if (customItem == null) this.vanillaItem = true;
+
+        // Apply item stack replacer
+        ItemStack itemStack = itemReplacer.createItemStack(value, this.item, customItem);
+
         if (this.amount == 0) throw new IllegalArgumentException("ItemStack amount must be over 0");
         ItemMeta meta = itemStack.getItemMeta();
         meta.setUnbreakable(this.unbreakable);
@@ -63,8 +70,8 @@ public class AbstractConfigItem {
         return itemStack;
     }
 
-    public String getMaterial() {
-        return material;
+    public String getItem() {
+        return item;
     }
 
     public int getAmount() {
@@ -87,10 +94,6 @@ public class AbstractConfigItem {
         return modelComponents;
     }
 
-    public void setMaterial(String material) {
-        this.material = material;
-    }
-
     public void setAmount(int amount) {
         this.amount = amount;
     }
@@ -111,12 +114,27 @@ public class AbstractConfigItem {
         this.modelComponents = modelComponents;
     }
 
+    public void setItem(String item) {
+        this.item = item;
+    }
+
+    public boolean isGlow() {
+        return glow;
+    }
+
+    public void setGlow(boolean glow) {
+        this.glow = glow;
+    }
+
     protected void copyValues(AbstractConfigItem from, AbstractConfigItem to) {
-        to.material = from.material;
+        to.item = from.item;
         to.amount = from.amount;
         to.unbreakable = from.unbreakable;
         to.displayName = from.displayName;
         to.lore = from.lore;
         to.modelComponents = from.modelComponents;
     }
+
+
 }
+

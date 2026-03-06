@@ -5,12 +5,18 @@ plugins {
 }
 
 group = 'fr.ibrakash.helper'
-version = '1.6.1'
+version = '1.7.0'
 
 repositories {
     mavenCentral()
     maven { url "https://repo.papermc.io/repository/maven-public/" }
     maven { url 'https://repo.xenondevs.xyz/releases' }
+    // ItemsAdder repository
+    maven { url "https://maven.devs.beer" }
+    // Oraxen repository
+    maven { url "https://repo.oraxen.com/releases" }
+    // Nexo repository
+    maven { url "https://repo.nexomc.com/releases" }
 }
 
 java {
@@ -33,6 +39,10 @@ dependencies {
     compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
     compileOnly 'mysql:mysql-connector-java:8.0.29'
     compileOnly 'com.zaxxer:HikariCP:5.0.1'
+
+    compileOnly 'dev.lone:api-itemsadder:4.0.10'
+    compileOnly 'io.th0rgal:oraxen:1.209.0'
+    compileOnly 'com.nexomc:nexo:1.20.1'
 }
 
 tasks.jar {

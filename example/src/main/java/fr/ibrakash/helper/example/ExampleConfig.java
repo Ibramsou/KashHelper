@@ -29,7 +29,7 @@ public class ExampleConfig extends ConfigurationObject {
             new ExampleObject(20 * 2, "example-3")
     );
     private ConfigItem configItem = new ConfigItem()
-            .material(Material.DIAMOND)
+            .item(Material.DIAMOND)
             .displayName("<gold>Unique item.")
             .lore(List.of("<gray>This is %player%'s item."));
 

@@ -27,7 +27,7 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
             "decoration-item", ConfigItems.GLASS_PANE_DECORATION,
             "example-item", new ConfigGuiItem()
                     .ingredientCharacter('X')
-                    .material(Material.DIAMOND)
+                    .item(Material.DIAMOND)
                     .displayName("<green>Example Item")
                     .lore(List.of("<gray>Example Lore."))
                     .actions(new ConfigAction().execute(List.of("example_action")))

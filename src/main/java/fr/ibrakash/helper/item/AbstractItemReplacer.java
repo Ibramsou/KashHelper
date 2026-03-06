@@ -20,7 +20,16 @@ public class AbstractItemReplacer<V> {
         this.itemMap.put(key, function);
     }
 
-    public ItemStack createItemStack(V value, String item) {
+    public ItemStack createItemStack(V value, String item, ItemStack customItem) {
+        if (customItem != null) {
+            Function<V, ItemStack> function = this.itemMap.get(item);
+            if (function == null) {
+                return customItem;
+            } else {
+                return function.apply(value);
+            }
+        }
+
         return ItemUtil.parseSkullItem(item).orElseGet(() -> {
             Function<V, ItemStack> function = this.itemMap.get(item);
             if (function == null) {

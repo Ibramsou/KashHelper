@@ -12,13 +12,13 @@ public class ConfigItem extends AbstractConfigItem {
 
     public ConfigItem() {}
 
-    public ConfigItem material(String material) {
-        this.material = material;
+    public ConfigItem item(String item) {
+        this.item = item;
         return this;
     }
 
-    public ConfigItem material(Material material) {
-        this.material = material.name();
+    public ConfigItem item(Material material) {
+        this.item = material.name();
         return this;
     }
 

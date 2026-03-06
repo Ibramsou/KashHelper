@@ -36,13 +36,13 @@ public class ConfigGuiItem extends AbstractConfigItem {
         return this;
     }
 
-    public ConfigGuiItem material(String material) {
-        this.material = material;
+    public ConfigGuiItem item(String item) {
+        this.item = item;
         return this;
     }
 
-    public ConfigGuiItem material(Material material) {
-        this.material = material.name();
+    public ConfigGuiItem item(Material material) {
+        this.item = material.name();
         return this;
     }
 
