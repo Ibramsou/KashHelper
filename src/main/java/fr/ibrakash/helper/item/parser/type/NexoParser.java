@@ -30,16 +30,7 @@ public class NexoParser implements CustomItemParser {
     }
 
     @Override
-    public boolean supports(String customId) {
-        return customId != null && isNexoAvailable();
-    }
-
-    @Override
-    public int getPriority() {
-        return 15;
-    }
-
-    private static boolean isNexoAvailable() {
+    public boolean supported() {
         try {
             Class.forName("com.nexomc.nexo.items.ItemRegistry");
             return true;

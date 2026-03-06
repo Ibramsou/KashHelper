@@ -1,15 +1,11 @@
 package fr.ibrakash.helper.item.parser;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import fr.ibrakash.helper.item.parser.type.ItemsAdderParser;
 import fr.ibrakash.helper.item.parser.type.NexoParser;
 import fr.ibrakash.helper.item.parser.type.OraxenParser;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
 
 /**
  * Interface for parsing custom items from third-party plugins
@@ -17,27 +13,26 @@ import java.util.stream.Stream;
  */
 public interface CustomItemParser {
 
-    List<CustomItemParser> CUSTOM_PARSERS = Stream.of(
-            OraxenParser.getInstance(),
-            NexoParser.getInstance(),
-            ItemsAdderParser.getInstance()
-    ).sorted(Comparator.comparingInt(CustomItemParser::getPriority).reversed()).toList();
+    Map<String, CustomItemParser> CUSTOM_PARSERS = Map.of(
+            "oraxen", OraxenParser.getInstance(),
+            "nexo", NexoParser.getInstance(),
+            "ia", ItemsAdderParser.getInstance());
 
     static ItemStack byId(String customId) {
         if (customId.isEmpty()) {
             return null;
         }
 
-        // Try parsers in order of priority
-        for (CustomItemParser parser : CUSTOM_PARSERS) {
-            if (parser.supports(customId)) {
-                ItemStack itemStack = parser.parseCustomItem(customId);
-                if (itemStack != null) {
-                    return itemStack;
-                }
-            }
-        }
-        return null;
+        if (!customId.contains(":")) return null;
+        String[] split = customId.split(":", 2);
+        String key = split[0].toLowerCase();
+        String id = split[1];
+
+        CustomItemParser customItemParser = CUSTOM_PARSERS.get(key);
+        if (customItemParser == null) return null;
+        if (!customItemParser.supported()) return null;
+
+        return customItemParser.parseCustomItem(id);
     }
 
     /**
@@ -47,19 +42,7 @@ public interface CustomItemParser {
      */
     ItemStack parseCustomItem(String customId);
 
-    /**
-     * Checks if this parser supports the given custom item ID
-     * @param customId the custom item identifier
-     * @return true if this parser can handle it
-     */
-    boolean supports(String customId);
+    boolean supported();
 
-    /**
-     * Gets the priority of this parser (higher = checked first)
-     * @return priority level
-     */
-    default int getPriority() {
-        return 0;
-    }
 }
 

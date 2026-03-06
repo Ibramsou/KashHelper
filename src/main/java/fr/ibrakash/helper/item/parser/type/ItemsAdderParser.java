@@ -30,16 +30,7 @@ public class ItemsAdderParser implements CustomItemParser {
     }
 
     @Override
-    public boolean supports(String customId) {
-        return customId != null && customId.contains(":") && isItemsAdderAvailable();
-    }
-
-    @Override
-    public int getPriority() {
-        return 10;
-    }
-
-    private static boolean isItemsAdderAvailable() {
+    public boolean supported() {
         try {
             Class.forName("dev.lone.itemsadder.api.CustomStack");
             return true;

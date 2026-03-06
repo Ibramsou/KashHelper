@@ -30,16 +30,7 @@ public class OraxenParser implements CustomItemParser {
     }
 
     @Override
-    public boolean supports(String customId) {
-        return customId != null && !customId.contains(":") && isOraxenAvailable();
-    }
-
-    @Override
-    public int getPriority() {
-        return 20;
-    }
-
-    private static boolean isOraxenAvailable() {
+    public boolean supported() {
         try {
             Class.forName("io.th0rgal.oraxen.items.OraxenItems");
             return true;
