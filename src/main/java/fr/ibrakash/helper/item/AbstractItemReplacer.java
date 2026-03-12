@@ -33,7 +33,7 @@ public class AbstractItemReplacer<V> {
         return ItemUtil.parseSkullItem(item).orElseGet(() -> {
             Function<V, ItemStack> function = this.itemMap.get(item);
             if (function == null) {
-                return new ItemStack(MaterialUtil.parseOrThrow(item));
+                return new ItemStack(MaterialUtil.parseOrWarn(item));
             } else {
                 return function.apply(value);
             }

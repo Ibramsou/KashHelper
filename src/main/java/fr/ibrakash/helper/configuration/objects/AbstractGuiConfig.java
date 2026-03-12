@@ -32,6 +32,7 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
                     .lore(List.of("<gray>Example Lore."))
                     .actions(new ConfigAction().execute(List.of("example_action")))
     );
+    protected int clickRateLimit = 4;
 
     private transient boolean loaded = false;
 
@@ -48,6 +49,10 @@ public abstract class AbstractGuiConfig extends ConfigStream  {
         items.forEach((s, item) -> item.setId(s));
         this.loaded = true;
         return items;
+    }
+
+    public int getClickRateLimit() {
+        return clickRateLimit;
     }
 
     public Optional<ConfigGuiItem> getItem(String key) {

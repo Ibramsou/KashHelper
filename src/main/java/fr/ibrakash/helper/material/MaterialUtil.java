@@ -91,4 +91,16 @@ public class MaterialUtil {
             throw new IllegalArgumentException(String.format(errorFormat, name));
         });
     }
+
+
+    public static Material parseOrWarn(String name) {
+        return parseOrWarn(name, "%s isn't a valid material name");
+    }
+
+    public static Material parseOrWarn(String name, String errorFormat) {
+        return parseOrElse(name, () -> {
+            System.out.println(errorFormat);
+            return Material.PAPER;
+        });
+    }
 }

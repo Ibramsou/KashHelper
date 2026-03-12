@@ -1,11 +1,14 @@
 package fr.ibrakash.helper.gui.invui;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import fr.ibrakash.helper.configuration.objects.item.ConfigGuiItem;
 import fr.ibrakash.helper.configuration.objects.item.ConfigItem;
 import fr.ibrakash.helper.gui.GuiActionConsumer;
 import fr.ibrakash.helper.gui.GuiItemWrapper;
 import fr.ibrakash.helper.gui.GuiWrapper;
 import fr.ibrakash.helper.text.TextReplacer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -16,10 +19,15 @@ import xyz.xenondevs.invui.item.builder.ItemBuilder;
 import xyz.xenondevs.invui.item.impl.AbstractItem;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class InvUiItem extends AbstractItem implements GuiItemWrapper {
+
+    private static final Cache<UUID, Integer> RATE_LIMIT_CACHE = CacheBuilder.newBuilder()
+            .expireAfterWrite(2, TimeUnit.SECONDS)
+            .build();
 
     private final GuiWrapper<?, ?, ?> wrapper;
     private final ConfigGuiItem defaultItem;
@@ -41,6 +49,14 @@ public class InvUiItem extends AbstractItem implements GuiItemWrapper {
 
     @Override
     public void handleClick(@NotNull ClickType clickType, @NotNull Player player, @NotNull InventoryClickEvent event) {
+        Integer lastClick = RATE_LIMIT_CACHE.getIfPresent(player.getUniqueId());
+        if (lastClick != null && Bukkit.getCurrentTick() - lastClick < this.wrapper.getConfig().getClickRateLimit()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        RATE_LIMIT_CACHE.put(player.getUniqueId(), Bukkit.getCurrentTick());
+
         if (this.defaultConsumer != null) {
             this.defaultConsumer.doAction(player, event.getClick(), event, this);
         }
