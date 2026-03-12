@@ -2,6 +2,7 @@ package fr.ibrakash.helper.item.parser.type;
 
 import com.nexomc.nexo.items.ItemBuilder;
 import fr.ibrakash.helper.item.parser.CustomItemParser;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -31,12 +32,7 @@ public class NexoParser implements CustomItemParser {
 
     @Override
     public boolean supported() {
-        try {
-            Class.forName("com.nexomc.nexo.items.ItemRegistry");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return Bukkit.getPluginManager().isPluginEnabled("Nexo");
     }
 }
 

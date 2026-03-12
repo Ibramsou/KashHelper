@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.item.parser.type;
 
 import fr.ibrakash.helper.item.parser.CustomItemParser;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -31,12 +32,7 @@ public class ItemsAdderParser implements CustomItemParser {
 
     @Override
     public boolean supported() {
-        try {
-            Class.forName("dev.lone.itemsadder.api.CustomStack");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return Bukkit.getPluginManager().isPluginEnabled("ItemsAdder");
     }
 }
 
