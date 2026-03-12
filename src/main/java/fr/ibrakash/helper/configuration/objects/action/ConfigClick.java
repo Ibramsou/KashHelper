@@ -13,7 +13,10 @@ public enum ConfigClick {
     SHIFT_LEFT(ClickType.SHIFT_LEFT),
     SHIFT_RIGHT(ClickType.SHIFT_RIGHT),
     RIGHT(ClickType.RIGHT),
-    LEFT(ClickType.LEFT);
+    LEFT(ClickType.LEFT),
+    MIDDLE(ClickType.MIDDLE),
+    SWAP_OFFHAND(ClickType.SWAP_OFFHAND),
+    DROP(ClickType.DROP);
 
     private final List<ClickType> types;
 
