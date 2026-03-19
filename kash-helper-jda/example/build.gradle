@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":kash-helper-jda")
+}
+
+tasks.register('runExample', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'fr.ibrakash.helper.jda.example.JdaExampleMain'
+}
+

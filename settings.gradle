@@ -1,2 +1,9 @@
 rootProject.name = 'KashHelper'
-include 'example'
+include 'kash-helper-common'
+include 'kash-helper-paper'
+include 'kash-helper-jda'
+include 'kash-helper-hytale'
+
+include 'kash-helper-paper:example'
+include 'kash-helper-jda:example'
+include 'kash-helper-hytale:example'

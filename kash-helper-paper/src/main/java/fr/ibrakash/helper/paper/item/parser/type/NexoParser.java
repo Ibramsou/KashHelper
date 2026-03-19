@@ -1,0 +1,38 @@
+package fr.ibrakash.helper.paper.item.parser.type;
+
+import com.nexomc.nexo.items.ItemBuilder;
+import fr.ibrakash.helper.paper.item.parser.CustomItemParser;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
+
+/**
+ * Custom item parser for Nexo plugin
+ */
+public class NexoParser implements CustomItemParser {
+
+    private static NexoParser instance;
+
+    private NexoParser() {}
+
+    public static NexoParser getInstance() {
+        if (instance == null) {
+            instance = new NexoParser();
+        }
+        return instance;
+    }
+
+    @Override
+    public ItemStack parseCustomItem(String customId) {
+        try {
+            return com.nexomc.nexo.api.NexoItems.optionalItemFromId(customId)
+                    .map(ItemBuilder::build).orElse( null);
+        } catch (Exception e) {}
+        return null;
+    }
+
+    @Override
+    public boolean supported() {
+        return Bukkit.getPluginManager().isPluginEnabled("Nexo");
+    }
+}
+

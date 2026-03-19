@@ -9,7 +9,13 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/example" />
+            <option value="$PROJECT_DIR$/kash-helper-common" />
+            <option value="$PROJECT_DIR$/kash-helper-hytale" />
+            <option value="$PROJECT_DIR$/kash-helper-hytale/example" />
+            <option value="$PROJECT_DIR$/kash-helper-jda" />
+            <option value="$PROJECT_DIR$/kash-helper-jda/example" />
+            <option value="$PROJECT_DIR$/kash-helper-paper" />
+            <option value="$PROJECT_DIR$/kash-helper-paper/example" />
           </set>
         </option>
       </GradleProjectSettings>

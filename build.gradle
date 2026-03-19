@@ -1,107 +1,65 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id("com.gradleup.shadow") version "9.3.1"
+    id("com.gradleup.shadow") version "9.3.1" apply false
 }
 
-group = 'fr.ibrakash.helper'
-version = '1.7.4'
-
-repositories {
-    mavenCentral()
-    maven { url "https://repo.papermc.io/repository/maven-public/" }
-    maven { url 'https://repo.xenondevs.xyz/releases' }
-    // ItemsAdder repository
-    maven { url "https://maven.devs.beer" }
-    // Oraxen repository
-    maven { url "https://repo.oraxen.com/releases" }
-    // Nexo repository
-    maven { url "https://repo.nexomc.com/releases" }
-}
-
-java {
-    toolchain { languageVersion = JavaLanguageVersion.of(21) }
-    withSourcesJar()
-    withJavadocJar()
-}
-
-dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
-    compileOnly "net.kyori:adventure-api:4.26.1"
-
-    compileOnly 'org.spongepowered:configurate-core:4.2.0'
-    compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
-    compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
-    compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
-
-    implementation "xyz.xenondevs.invui:invui:1.49"
-
-    compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
-    compileOnly 'mysql:mysql-connector-java:8.0.29'
-    compileOnly 'com.zaxxer:HikariCP:5.0.1'
-
-    compileOnly 'dev.lone:api-itemsadder:4.0.10'
-    compileOnly 'io.th0rgal:oraxen:1.209.0'
-    compileOnly 'com.nexomc:nexo:1.20.1'
-}
-
-tasks.jar {
-    archiveClassifier.set("plain")
-}
-
-tasks.shadowJar {
-    archiveClassifier.set("")
-}
-
-tasks.withType(GenerateModuleMetadata).configureEach {
-    enabled = false
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            artifactId = "kash-helper"
-
-            from components.shadow
-
-            artifact(tasks.named("sourcesJar"))
-            artifact(tasks.named("javadocJar"))
-
-            pom {
-                name = "KashHelper"
-                description = "Kash Helper is a helper library"
-                url = "https://github.com/Ibramsou/KashHelper"
-                licenses {
-                    license {
-                        name = "The Apache License, Version 2.0"
-                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "Bramsou"
-                        name = "Ibrahim"
-                        email = "braimsou@gmail.com"
-                    }
-                }
-                scm {
-                    url = "https://github.com/Ibramsou/KashHelper"
-                    connection = "scm:git:git://github.com/Ibramsou/KashHelper.git"
-                    developerConnection = "scm:git:ssh://github.com/Ibramsou/KashHelper.git"
-                }
-            }
-        }
-    }
+allprojects {
+    group = "fr.ibrakash.helper"
+    version = "2.0.0-SNAPSHOT"
 
     repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/Ibramsou/KashHelper")
-
-            credentials {
-                username = (findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR"))?.toString()
-                password = (findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN"))?.toString()
-            }
-        }
+        mavenCentral()
+        mavenLocal()
     }
 }
+
+subprojects {
+    apply plugin: "java-library"
+    apply plugin: "com.gradleup.shadow"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = "UTF-8"
+        options.release = 21
+    }
+
+    dependencies {
+        // Databases Libraries
+        compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+        compileOnly 'mysql:mysql-connector-java:8.0.29'
+        compileOnly 'com.zaxxer:HikariCP:5.0.1'
+
+        // Configuration Libraries
+        compileOnly 'org.spongepowered:configurate-core:4.2.0'
+        compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
+        compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
+        compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
+    }
+
+    tasks.test {
+        useJUnitPlatform()
+    }
+
+    tasks.jar {
+        archiveClassifier.set("plain")
+    }
+
+    tasks.shadowJar {
+        archiveClassifier.set("")
+        mergeServiceFiles()
+    }
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        enabled = false
+    }
+}
+
+
