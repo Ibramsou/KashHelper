@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.example;
 
 import fr.ibrakash.helper.configuration.ConfigurationObject;
+import fr.ibrakash.helper.configuration.objects.database.ConfigPersistence;
 import fr.ibrakash.helper.paper.configuration.objects.item.ConfigItem;
 import org.bukkit.Material;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -24,11 +25,17 @@ public class ExampleConfig extends ConfigurationObject {
             .displayName("<gold>Unique item.")
             .lore(List.of("<gray>This is %player%'s item."));
 
+    private ConfigPersistence database = new ConfigPersistence();
+
     public List<ExampleObject> getIntervals() {
         return intervals;
     }
 
     public ConfigItem getReplaceableItem() {
         return configItem;
+    }
+
+    public ConfigPersistence getDatabase() {
+        return database;
     }
 }

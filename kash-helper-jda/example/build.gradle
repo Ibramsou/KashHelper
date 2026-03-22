@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     implementation project(":kash-helper-jda")
+    compileOnly("net.dv8tion:JDA:5.6.1")
 }
 
 tasks.register('runExample', JavaExec) {

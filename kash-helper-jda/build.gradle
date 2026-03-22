@@ -1,15 +1,11 @@
-plugins {
-    id 'java'
-}
-
-group = 'fr.ibrakash.helper'
-version = '1.7.4'
+apply plugin: "maven-publish"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    api project(':kash-helper-common')
     compileOnly("net.dv8tion:JDA:5.6.1")
     implementation 'org.apache.commons:commons-lang3:3.13.0'
 
@@ -18,6 +14,49 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test {
-    useJUnitPlatform()
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = "kash-helper-jda"
+            from components.shadow
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
+
+            pom {
+                name = "KashHelper JDA"
+                description = "KashHelper JDA module"
+                url = "https://github.com/Ibramsou/KashHelper"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "Bramsou"
+                        name = "Ibrahim"
+                        email = "braimsou@gmail.com"
+                    }
+                }
+                scm {
+                    url = "https://github.com/Ibramsou/KashHelper"
+                    connection = "scm:git:git://github.com/Ibramsou/KashHelper.git"
+                    developerConnection = "scm:git:ssh://github.com/Ibramsou/KashHelper.git"
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Ibramsou/KashHelper")
+            credentials {
+                username = (findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR"))?.toString()
+                password = (findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN"))?.toString()
+            }
+        }
+    }
 }
+

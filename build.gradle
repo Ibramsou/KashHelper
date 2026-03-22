@@ -4,7 +4,7 @@ plugins {
     id("com.gradleup.shadow") version "9.3.1" apply false
 }
 
-allprojects {
+ext {
     group = "fr.ibrakash.helper"
     version = "2.0.0-SNAPSHOT"
 
@@ -35,7 +35,11 @@ subprojects {
         // Databases Libraries
         compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
         compileOnly 'mysql:mysql-connector-java:8.0.29'
+        compileOnly 'org.postgresql:postgresql:42.7.4'
+        compileOnly 'org.xerial:sqlite-jdbc:3.46.0.1'
         compileOnly 'com.zaxxer:HikariCP:5.0.1'
+        compileOnly 'org.jdbi:jdbi3-core:3.49.6'
+        compileOnly 'org.mongodb:mongodb-driver-sync:5.3.1'
 
         // Configuration Libraries
         compileOnly 'org.spongepowered:configurate-core:4.2.0'
@@ -60,6 +64,21 @@ subprojects {
     tasks.withType(GenerateModuleMetadata).configureEach {
         enabled = false
     }
+
+    if (rootProject.publishableModules.contains(project.name)) {
+        apply plugin: 'maven-publish'
+        apply plugin: 'signing'
+
+        publishing {
 }
+        def signingKey = (signingKeyFile && file(signingKeyFile).exists()) ? file(signingKeyFile).text : null
 
-
+        signing {
+            required { signingKey != null && signingPassword != null && gradle.taskGraph.allTasks.any { it.name.toLowerCase().contains("sonatype") } }
+            if (signingKey && signingPassword) {
+                useInMemoryPgpKeys(signingKey, signingPassword)
+                sign publishing.publications.named("mavenJava").get()
+            }
+        }
+    }
+}

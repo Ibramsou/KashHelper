@@ -43,3 +43,4 @@ bin/
 .DS_Store
 
 kash-helper-paper/example/run/
+local_directory/

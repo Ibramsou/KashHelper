@@ -133,4 +133,8 @@ public abstract class SqlDatabase {
     public ExecutorService getPool() {
         return pool;
     }
+
+    public HikariDataSource getDataSource() {
+        return this.source;
+    }
 }
