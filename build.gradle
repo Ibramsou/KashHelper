@@ -1,12 +1,25 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id("com.gradleup.shadow") version "9.3.1" apply false
+    id 'signing'
+    id('com.gradleup.shadow') version '9.3.1' apply false
 }
 
 ext {
-    group = "fr.ibrakash.helper"
-    version = "2.0.0-SNAPSHOT"
+    publishableModules = [
+            'kash-helper-common',
+            'kash-helper-config',
+            'kash-helper-paper',
+            /*'kash-helper-jda',
+            'kash-helper-hytale'
+
+             */
+    ] as Set
+}
+
+allprojects {
+    group = 'xyz.imrine'
+    version = '2.0.0-SNAPSHOT'
 
     repositories {
         mavenCentral()
@@ -15,8 +28,8 @@ ext {
 }
 
 subprojects {
-    apply plugin: "java-library"
-    apply plugin: "com.gradleup.shadow"
+    apply plugin: 'java-library'
+    apply plugin: 'com.gradleup.shadow'
 
     java {
         toolchain {
@@ -27,25 +40,8 @@ subprojects {
     }
 
     tasks.withType(JavaCompile).configureEach {
-        options.encoding = "UTF-8"
+        options.encoding = 'UTF-8'
         options.release = 21
-    }
-
-    dependencies {
-        // Databases Libraries
-        compileOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
-        compileOnly 'mysql:mysql-connector-java:8.0.29'
-        compileOnly 'org.postgresql:postgresql:42.7.4'
-        compileOnly 'org.xerial:sqlite-jdbc:3.46.0.1'
-        compileOnly 'com.zaxxer:HikariCP:5.0.1'
-        compileOnly 'org.jdbi:jdbi3-core:3.49.6'
-        compileOnly 'org.mongodb:mongodb-driver-sync:5.3.1'
-
-        // Configuration Libraries
-        compileOnly 'org.spongepowered:configurate-core:4.2.0'
-        compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
-        compileOnly 'org.spongepowered:configurate-hocon:4.2.0'
-        compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.20.0'
     }
 
     tasks.test {
@@ -53,11 +49,11 @@ subprojects {
     }
 
     tasks.jar {
-        archiveClassifier.set("plain")
+        archiveClassifier.set('plain')
     }
 
     tasks.shadowJar {
-        archiveClassifier.set("")
+        archiveClassifier.set('')
         mergeServiceFiles()
     }
 
@@ -70,14 +66,62 @@ subprojects {
         apply plugin: 'signing'
 
         publishing {
-}
+            publications {
+                create('mavenJava', MavenPublication) {
+                    artifactId = project.name
+                    from components.java
+
+                    pom {
+                        name = "KashHelper ${project.name - 'kash-helper-'}".trim()
+                        description = "${project.name} module for KashHelper"
+                        url = 'https://imrine.xyz'
+                        licenses {
+                            license {
+                                name = 'The Apache License, Version 2.0'
+                                url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'Bramsou'
+                                name = 'Ibrahim'
+                                email = 'braimsou@gmail.com'
+                            }
+                        }
+                        scm {
+                            url = 'https://github.com/Ibramsou/KashHelper'
+                            connection = 'scm:git:git://github.com/Ibramsou/KashHelper.git'
+                            developerConnection = 'scm:git:ssh://github.com/Ibramsou/KashHelper.git'
+                        }
+                    }
+                }
+            }
+
+            repositories {
+                maven {
+                    name = 'Sonatype'
+                    def releaseUrl = findProperty('mavenCentralReleaseUrl') ?: 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                    def snapshotUrl = findProperty('mavenCentralSnapshotUrl') ?: 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+                    url = uri(project.version.toString().endsWith('-SNAPSHOT') ? snapshotUrl : releaseUrl)
+                    credentials {
+                        username = (findProperty('mavenCentralUsername') ?: System.getenv('MAVEN_CENTRAL_USERNAME'))?.toString()
+                        password = (findProperty('mavenCentralPassword') ?: System.getenv('MAVEN_CENTRAL_PASSWORD'))?.toString()
+                    }
+                }
+            }
+        }
+
+        def signingKeyFile = (findProperty('signingInMemoryKeyFile') ?: System.getenv('SIGNING_IN_MEMORY_KEY_FILE'))?.toString()
+        def signingPassword = (findProperty('signingInMemoryKeyPassword') ?: System.getenv('SIGNING_IN_MEMORY_KEY_PASSWORD'))?.toString()
         def signingKey = (signingKeyFile && file(signingKeyFile).exists()) ? file(signingKeyFile).text : null
 
         signing {
-            required { signingKey != null && signingPassword != null && gradle.taskGraph.allTasks.any { it.name.toLowerCase().contains("sonatype") } }
+            required {
+                signingKey != null && signingPassword != null && gradle.taskGraph.allTasks.any { it.name.toLowerCase().contains('publish') }
+            }
             if (signingKey && signingPassword) {
                 useInMemoryPgpKeys(signingKey, signingPassword)
-                sign publishing.publications.named("mavenJava").get()
+                sign publishing.publications.named('mavenJava').get()
             }
         }
     }

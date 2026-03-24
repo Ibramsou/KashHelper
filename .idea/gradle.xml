@@ -9,13 +9,19 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/kash-helper-common" />
-            <option value="$PROJECT_DIR$/kash-helper-hytale" />
-            <option value="$PROJECT_DIR$/kash-helper-hytale/example" />
-            <option value="$PROJECT_DIR$/kash-helper-jda" />
-            <option value="$PROJECT_DIR$/kash-helper-jda/example" />
-            <option value="$PROJECT_DIR$/kash-helper-paper" />
-            <option value="$PROJECT_DIR$/kash-helper-paper/example" />
+            <option value="$PROJECT_DIR$/common" />
+            <option value="$PROJECT_DIR$/config" />
+            <option value="$PROJECT_DIR$/examples/paper" />
+            <option value="$PROJECT_DIR$/persistence" />
+            <option value="$PROJECT_DIR$/persistence/json" />
+            <option value="$PROJECT_DIR$/persistence/mongo" />
+            <option value="$PROJECT_DIR$/persistence/sql" />
+            <option value="$PROJECT_DIR$/platforms/hytale" />
+            <option value="$PROJECT_DIR$/platforms/hytale/example" />
+            <option value="$PROJECT_DIR$/platforms/jda" />
+            <option value="$PROJECT_DIR$/platforms/jda/example" />
+            <option value="$PROJECT_DIR$/platforms/paper" />
+            <option value="$PROJECT_DIR$/platforms/paper-gui" />
           </set>
         </option>
       </GradleProjectSettings>
