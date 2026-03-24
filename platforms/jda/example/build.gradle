@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":kash-helper-jda")
+    compileOnly("net.dv8tion:JDA:5.6.1")
+}
+
+tasks.register('runExample', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'fr.ibrakash.helper.jda.example.JdaExampleMain'
+}
+

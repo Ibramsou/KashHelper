@@ -1,0 +1,13 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api project(':kash-helper-common')
+    compileOnly('net.dv8tion:JDA:5.6.1')
+    implementation 'org.apache.commons:commons-lang3:3.13.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}

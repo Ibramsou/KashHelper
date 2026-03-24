@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id('com.gradleup.shadow')
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    implementation project(':kash-helper-paper')
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
+    compileOnly 'org.spongepowered:configurate-core:4.2.0'
+    compileOnly 'org.spongepowered:configurate-yaml:4.2.0'
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("")
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.build {
+    dependsOn tasks.shadowJar
+}
+
+tasks.register('devPaperExampleJar', Copy) {
+    from(layout.projectDirectory.dir('build/libs')) {
+        rename { String fileName ->
+            fileName.replace(shadowJar.archiveFileName.get(), "${shadowJar.archiveBaseName.get()}-dev.jar")
+        }
+    }
+    include shadowJar.archiveFileName.get()
+    into file('run/plugins')
+    dependsOn tasks.named('build')
+}

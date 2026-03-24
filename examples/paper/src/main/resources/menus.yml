@@ -1,0 +1,65 @@
+paged-gui:
+  title: '<gray>Example Title: <white>%player%'
+  shape:
+    - '# # # # # # # # #'
+    - '# X X X X X X X #'
+    - '# X X X X X X X #'
+    - '# # P # F # N # #'
+  paged-item: "block"
+  filters:
+    blocks:
+      selected-entry: <green>- %mode%
+      un-selected-entry: <gray>- %mode%
+      modes:
+        - text: All
+          streams: [sort_names]
+        - text: Ores
+          streams: [ores_only, sort_diamonds, sort_names]
+        - text: Wood
+          streams: [wood_only, sort_names]
+  items:
+    block:
+      shape-character: X
+      actions:
+        - click-types: [ LEFT ]
+          execute: [ switch_item:get-back ]
+        - click-types: [ RIGHT ]
+          execute: [ change_filter_mode:blocks ]
+      item: '%material_name%'
+      amount: 1
+      unbreakable: false
+      display-name: '<gold>Block #%page_item_number%: <white>%material_name%'
+      lore:
+        - '<gray>Item #%page_item_number%'
+        - <gray>You are:<white> %player%
+    filter:
+      shape-character: F
+      display-name: <gold>Filter
+      lore:
+        - '%filter_lore:blocks%'
+      actions:
+        - change_filter_mode:blocks
+    get-back:
+      shape-character: I
+      display-name: <green>Get Item Back
+      item: DIAMOND
+      actions:
+        - switch_item:paged-item
+        - reload_items
+normal-gui:
+  title: <green>Normal Gui
+  shape:
+    - '# # # # # # # # #'
+    - '# . . . X . . . #'
+    - '# # # # # # # # #'
+  items:
+    click:
+      shape-character: X
+      actions:
+        - click_me
+      matitem: PAPER
+      amount: 1
+      unbreakable: false
+      display-name: <red>Click Me
+      lore:
+        - <green>Don't click me

@@ -1,0 +1,35 @@
+repositories {
+    // Paper Repository
+    maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
+    // ItemsAdder repository
+    maven { url "https://maven.devs.beer" }
+    // Oraxen repository
+    maven { url "https://repo.oraxen.com/releases" }
+    // Nexo repository
+    maven { url "https://repo.nexomc.com/releases" }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
+}
+
+dependencies {
+    api project(':kash-helper-common')
+    // Paper Libraries
+    compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+    compileOnly "net.kyori:adventure-api:4.26.1"
+
+    // Directly used by Paper sources (serializers/config objects)
+    implementation 'org.spongepowered:configurate-core:4.2.0'
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
+
+    // ItemsAdder, Oraxen and Nexo are all optional dependencies.
+    compileOnly 'dev.lone:api-itemsadder:4.0.10'
+    compileOnly 'io.th0rgal:oraxen:1.209.0'
+    compileOnly 'com.nexomc:nexo:1.20.1'
+}
+
+sourceSets {
+    main {
+        java {
+            exclude 'fr/ibrakash/helper/paper/utils/WorldEditUtils.java'
+        }
+    }
+}

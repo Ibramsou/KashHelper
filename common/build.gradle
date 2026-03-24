@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+
+dependencies {
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'
+
+    // Common configuration APIs (kept in common runtime)
+    implementation 'org.spongepowered:configurate-core:4.2.0'
+    implementation 'org.spongepowered:configurate-yaml:4.2.0'
+    implementation 'org.spongepowered:configurate-hocon:4.2.0'
+
+    // Optional runtime dependencies for persistence features.
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
+    compileOnly 'com.zaxxer:HikariCP:5.0.1'
+    compileOnly 'org.mongodb:mongodb-driver-sync:5.3.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
+    testRuntimeOnly 'com.zaxxer:HikariCP:5.0.1'
+    testRuntimeOnly 'org.mongodb:mongodb-driver-sync:5.3.1'
+    testRuntimeOnly 'org.xerial:sqlite-jdbc:3.46.0.1'
+    testRuntimeOnly 'org.spongepowered:configurate-core:4.2.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Persistence and SQL sources stay in common and are published from this module.

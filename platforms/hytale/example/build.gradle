@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(":kash-helper-hytale")
+    implementation project(":kash-helper-common")
+}
+
+tasks.register('runExample', JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'fr.ibrakash.helper.hytale.example.HytaleExampleMain'
+}
+
