@@ -26,8 +26,7 @@ public class ConfigurationResources {
     }
 
     protected void copyResourceTo(String resourceFileName, Path dest) throws IOException {
-        String resourcePath = "/" + resourceFileName;
-        try (InputStream in = this.addon.getRaw().getClass().getResourceAsStream(resourcePath)) {
+        try (InputStream in = this.openResource(resourceFileName)) {
             if (in == null) {
                 Files.createFile(dest);
                 return;
@@ -40,10 +39,8 @@ public class ConfigurationResources {
             ConfigurationLoaderType type,
             String resourceFileName
     ) throws IOException {
-        String resourcePath = "/" + resourceFileName;
-
         byte[] bytes;
-        try (InputStream in = this.addon.getRaw().getClass().getResourceAsStream(resourcePath)) {
+        try (InputStream in = this.openResource(resourceFileName)) {
             if (in == null) {
                 CommentedConfigurationNode empty = CommentedConfigurationNode.root();
                 return new ResourceSnapshot(empty, "missing-resource");
@@ -133,6 +130,26 @@ public class ConfigurationResources {
         Files.createDirectories(path.getParent());
         Files.writeString(path, content, StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    private InputStream openResource(String resourceFileName) {
+        String resourcePath = "/" + resourceFileName;
+
+        Object raw = this.addon.getRaw();
+        if (raw != null) {
+            InputStream stream = raw.getClass().getResourceAsStream(resourcePath);
+            if (stream != null) {
+                return stream;
+            }
+        }
+
+        InputStream addonStream = this.addon.getClass().getResourceAsStream(resourcePath);
+        if (addonStream != null) {
+            return addonStream;
+        }
+
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        return contextClassLoader == null ? null : contextClassLoader.getResourceAsStream(resourceFileName);
     }
 
     public record ResourceSnapshot(CommentedConfigurationNode node, String sha256) {}

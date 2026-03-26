@@ -12,7 +12,14 @@ public abstract class SingleConfigurationReader<V> extends ConfigurationReader {
     protected final Map<String, V> pathMap = new HashMap<>();
 
     protected SingleConfigurationReader(KashAddon<?> addon) {
-        super(addon);
+        this(addon, null);
+    }
+
+    protected SingleConfigurationReader(KashAddon<?> addon, String key) {
+        super(addon, key);
+        if (this.autoLoad()) {
+            this.reload();
+        }
     }
 
     public V resolve(String path) {
@@ -29,6 +36,8 @@ public abstract class SingleConfigurationReader<V> extends ConfigurationReader {
 
     @Override
     public void reload() {
+        // Ensure cache stays in sync with underlying configuration.
+        this.pathMap.clear();
         super.reload();
     }
 

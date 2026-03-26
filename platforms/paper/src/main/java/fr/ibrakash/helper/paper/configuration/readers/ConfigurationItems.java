@@ -22,7 +22,7 @@ public abstract class ConfigurationItems extends DualConfigurationReader<ConfigI
     private static final Consumer<TypeSerializerCollection.Builder> GUI_SERIALIZERS =
             Configurations.createSerializer(builder -> builder.register(ConfigGroupAction.class, ActionSerializer.get()));
 
-    private final Map<Character, ConfigGuiItem> shapeItems = new HashMap<>();
+    private Map<Character, ConfigGuiItem> shapeItems;
 
     protected ConfigurationItems(KashAddon<JavaPlugin> addon) {
         super(addon);
@@ -37,12 +37,16 @@ public abstract class ConfigurationItems extends DualConfigurationReader<ConfigI
     }
 
     public ConfigGuiItem getShapeItem(Character character) {
-        return this.shapeItems.get(character);
+        return this.shapeItems == null ? null : this.shapeItems.get(character);
     }
 
     @Override
     public void reload() {
-        this.shapeItems.clear();
+        if (this.shapeItems == null) {
+            this.shapeItems = new HashMap<>();
+        } else {
+            this.shapeItems.clear();
+        }
         super.reload();
     }
 

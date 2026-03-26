@@ -4,10 +4,15 @@ repositories {
 
 dependencies {
     api project(':kash-helper-common')
-    compileOnly('net.dv8tion:JDA:5.6.1')
-    implementation 'org.apache.commons:commons-lang3:3.13.0'
+    api 'org.spongepowered:configurate-core:4.2.0'
+    compileOnly('net.dv8tion:JDA:6.3.2')
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'net.dv8tion:JDA:6.3.2'
+    testImplementation 'org.spongepowered:configurate-core:4.2.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
 }

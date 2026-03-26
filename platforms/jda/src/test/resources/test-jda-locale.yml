@@ -1,0 +1,12 @@
+hello: "Hello %name%!"
+
+guild-info:
+  - "<container>"
+  - "  <text kind='title'>%guild_title% Infos</text>"
+  - "  <section>"
+  - "    <text>Average server score: %score%%</text>"
+  - "  </section>"
+  - "</container>"
+
+direct-message-not-allowed: "Please enable your DMs."
+

@@ -42,5 +42,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-kash-helper-paper/example/run/
+/examples/paper/run/
+/examples/jda/run/
+/examples/hytale/run/
 local_directory/

@@ -7,13 +7,6 @@ import java.io.File;
 
 /**
  * Gives access to the raw resources of the chosen backend.
- * <p>
- * Users build their own {@link Repository} implementations on top of the
- * resources exposed here:
- * <ul>
- *   <li>SQL  → {@link #getSqlDatabase()} + {@link #getDriverType()}</li>
- *   <li>JSON → {@link #getStorageFolder()}</li>
- * </ul>
  * MongoDB and other optional backends are injected via {@link PersistenceProvider}
  * and expose the same contract.
  */

@@ -18,9 +18,7 @@ public interface EntityStore<T, ID> {
 
     default List<T> findAll(List<SortClause> sorts, int limit) {
         List<T> all = this.findAll();
-        if (sorts != null && !sorts.isEmpty()) {
-            // default impl has no ordering - override in SQL/JSON stores
-        }
+        // default impl has no ordering - override in SQL/JSON stores
         if (limit < 0 || limit >= all.size()) {
             return all;
         }

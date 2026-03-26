@@ -1,0 +1,146 @@
+<messages>
+  <!-- ─────────────────────────────────────────────────────────────────────
+       Classic embed: uses EmbedBuilder (title, description, fields,
+       author, footer, thumbnail, image, color) + action rows (buttons).
+       ───────────────────────────────────────────────────────────────────── -->
+  <message id="guild-info">
+    <container>
+      <!-- Author row -->
+      <author name="%guild_name% Bot" icon="%bot_avatar%" url=""/>
+
+      <!-- Title + description -->
+      <text kind="title">%guild_title% Infos</text>
+      <text>Overview of the server statistics.</text>
+
+      <!-- Inline fields -->
+      <field name="👥 Members" inline="true">%member_count%</field>
+      <field name="🟢 Online" inline="true">%online_count%</field>
+      <field name="🚀 Boost level" inline="true">%boost_level%</field>
+
+      <!-- Full-width fields -->
+      <field name="📅 Created">%creation_date%</field>
+      <field name="🗺 Locale">%locale_display%</field>
+
+      <!-- Scores section -->
+      <field name="📊 Scores" inline="false">Economic value: **%economic_value%€** | Ad estimation: **%ad_estimation_economic_value%€**
+Members score: **%members_score%%** | Activity: **%activity_score%%** | Ads: **%ad_click_score%%**
+Average: **%score%%** | Members estimation: **%members_estimation%**</field>
+
+      <!-- Thumbnail + image -->
+      <thumbnail url="%guild_icon%"/>
+      <image url="%banner_url%"/>
+
+      <!-- Accent colour (hex) -->
+      <color>#5865F2</color>
+
+      <!-- Footer -->
+      <footer text="Last updated: %last_update%" icon="%bot_avatar%"/>
+
+      <!-- Buttons -->
+      <actions>
+        <button id="refresh_guild" style="primary">🔄 Refresh</button>
+        <button id="details_guild" style="secondary">📋 Details</button>
+      </actions>
+
+      <!-- Period select -->
+      <actions>
+        <string-select id="guild_period" placeholder="Select a period" min="1" max="1">
+          <option value="7d" label="Last 7 days" description="Statistics for the last week" default="true"/>
+          <option value="30d" label="Last 30 days" description="Statistics for the last month"/>
+          <option value="all" label="All time" description="All-time statistics"/>
+        </string-select>
+      </actions>
+    </container>
+  </message>
+
+  <!-- ─────────────────────────────────────────────────────────────────────
+       V2 Components embed: uses Container + TextDisplay + Section +
+       MediaGallery + Separator + ActionRow.
+       Triggered automatically when <text-display>, <section>,
+       <media-gallery> or <separator/> are present.
+       ───────────────────────────────────────────────────────────────────── -->
+  <message id="guild-info-v2">
+    <container color="#5865F2" spoiler="false">
+      <!-- Large heading -->
+      <text-display>## %guild_name% Dashboard</text-display>
+      <text-display>Overview of your server statistics and management tools.</text-display>
+
+      <separator divider="true" spacing="small"/>
+
+      <!-- Section: text on the left, thumbnail accessory on the right -->
+      <section accessory-type="thumbnail" accessory-url="%guild_icon%">
+        <text-display>**👥 Members:** %member_count%</text-display>
+        <text-display>**🟢 Online:** %online_count%</text-display>
+        <text-display>**🚀 Boost level:** %boost_level%</text-display>
+      </section>
+
+      <separator divider="false" spacing="small"/>
+
+      <!-- Section: text on the left, button accessory on the right -->
+      <section accessory-type="button" accessory-id="open_web" accessory-style="link" accessory-label="🌐 Web">
+        <text-display>**📊 Average score:** %score%%</text-display>
+        <text-display>**📅 Created:** %creation_date%</text-display>
+      </section>
+
+      <separator divider="true" spacing="large"/>
+
+      <!-- Media gallery -->
+      <text-display>### 📸 Server Charts</text-display>
+      <media-gallery>
+        <media url="%chart_members%" description="Members growth" spoiler="false"/>
+        <media url="%chart_activity%" description="Activity over time" spoiler="false"/>
+      </media-gallery>
+
+      <separator divider="true" spacing="small"/>
+
+      <!-- Buttons -->
+      <actions>
+        <button id="refresh_guild" style="primary">🔄 Refresh</button>
+        <button id="details_guild" style="secondary">📋 Details</button>
+        <button id="export_csv" style="success">📥 Export</button>
+      </actions>
+
+      <!-- String select -->
+      <actions>
+        <string-select id="guild_period" placeholder="Select a period" min="1" max="1">
+          <option value="7d" label="Last 7 days" emoji="📅" default="true"/>
+          <option value="30d" label="Last 30 days" emoji="📆"/>
+          <option value="all" label="All time" emoji="🗓"/>
+        </string-select>
+      </actions>
+    </container>
+  </message>
+
+  <!-- ─────────────────────────────────────────────────────────────────────
+       Private (DM) embed — classic
+       ───────────────────────────────────────────────────────────────────── -->
+  <message id="guild-info-dm">
+    <container>
+      <text kind="title">Private guild infos</text>
+      <text>Hello %user_name%!</text>
+      <field name="🏅 Your score" inline="true">%score%%</field>
+      <field name="📅 Joined" inline="true">%join_date%</field>
+      <color>#57F287</color>
+    </container>
+  </message>
+
+  <!-- Fallback when DMs are disabled -->
+  <message id="direct-message-not-allowed">Please enable your DMs to receive private reports.</message>
+
+  <!-- Plain-text welcome message -->
+  <message id="welcome-dm">
+    <lines>
+      <line>Welcome %user_name%!</line>
+      <line>You joined the server. Your current score is %score%%.</line>
+    </lines>
+  </message>
+
+  <message id="ping">
+    <container>
+      <text kind="title">🏓 Pong</text>
+      <field name="Gateway ping" inline="true">%gateway_ping%ms</field>
+      <color>#57F287</color>
+    </container>
+  </message>
+</messages>
+

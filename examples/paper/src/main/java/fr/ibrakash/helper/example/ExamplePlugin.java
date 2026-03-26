@@ -53,8 +53,8 @@ public class ExamplePlugin extends JavaPlugin {
         this.exampleRepository = new ExampleRepository(this.addon);
 
         this.exampleLocale = new ExampleLocale(this.addon);
-        this.exampleMenus = new ExampleMenus(this.addon);
         this.exampleItems = new ExampleItems(this.addon);
+        this.exampleMenus = new ExampleMenus(this.addon);
 
         this.addon.configurations().reloadCachedMappers();
 

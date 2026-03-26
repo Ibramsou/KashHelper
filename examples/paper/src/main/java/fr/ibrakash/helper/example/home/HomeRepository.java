@@ -40,7 +40,7 @@ public final class HomeRepository {
     private HomeRepository(PersistenceSession session) {
         this.session = session;
         this.store = session.entity(HomeRecord.class, String.class);
-        this.reload();
+        // reload() is now automatically called by the base ConfigurationReader constructor.
     }
 
     public static HomeRepository create(KashAddon<JavaPlugin> addon, ConfigPersistence config) {
@@ -117,4 +117,3 @@ public final class HomeRepository {
         return this.cache.size();
     }
 }
-

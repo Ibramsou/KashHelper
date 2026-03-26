@@ -10,6 +10,7 @@ dependencies {
     implementation 'org.spongepowered:configurate-core:4.2.0'
     implementation 'org.spongepowered:configurate-yaml:4.2.0'
     implementation 'org.spongepowered:configurate-hocon:4.2.0'
+    implementation 'org.spongepowered:configurate-xml:4.2.0'
 
     // Optional runtime dependencies for persistence features.
     compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.20.0'

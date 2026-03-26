@@ -4,6 +4,7 @@ import fr.ibrakash.helper.configuration.objects.database.ConfigJsonStorage;
 import fr.ibrakash.helper.configuration.objects.database.ConfigPersistence;
 import fr.ibrakash.helper.configuration.objects.database.ConfigSql;
 import fr.ibrakash.helper.persistence.PersistenceType;
+import fr.ibrakash.helper.persistence.adapter.sql.SqlAdapter;
 import fr.ibrakash.helper.persistence.entity.PersistedColumn;
 import fr.ibrakash.helper.persistence.entity.PersistedEntity;
 import fr.ibrakash.helper.persistence.entity.PersistedId;

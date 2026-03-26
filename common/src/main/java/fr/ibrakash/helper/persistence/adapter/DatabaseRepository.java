@@ -4,6 +4,8 @@ import fr.ibrakash.helper.configuration.objects.database.ConfigPersistence;
 import fr.ibrakash.helper.persistence.EntityStore;
 import fr.ibrakash.helper.persistence.PersistenceSession;
 import fr.ibrakash.helper.persistence.PersistenceType;
+import fr.ibrakash.helper.persistence.adapter.json.JsonAdapter;
+import fr.ibrakash.helper.persistence.adapter.sql.SqlAdapter;
 import fr.ibrakash.helper.persistence.entity.PersistedId;
 import fr.ibrakash.helper.persistence.entity.internal.EntityModel;
 import fr.ibrakash.helper.persistence.query.SortClause;
@@ -916,7 +918,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
         }
     }
 
-    private static final class DefaultMongoAdapter extends BackendAdapter<DatabaseRepository> {
+    private static final class DefaultMongoAdapter extends DatabaseAdapter<DatabaseRepository> {
 
         private DefaultMongoAdapter(DatabaseRepository repository) {
             super(repository);

@@ -1,0 +1,19 @@
+<messages>
+  <message id="guild-info">
+    <container>
+      <text kind="title">%guild_title% Infos</text>
+      <section>
+        <text>Average server score: %score%%</text>
+      </section>
+    </container>
+  </message>
+  <message id="guild-summary">
+    <lines>
+      <line>Guild: %guild_title%</line>
+      <line>Score: %score%%</line>
+    </lines>
+  </message>
+  <message id="direct-message-not-allowed">Please enable your DMs.</message>
+</messages>
+
+

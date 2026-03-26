@@ -20,8 +20,16 @@ public abstract class ConfigurationReader {
     protected ConfigurationNode node;
 
     protected ConfigurationReader(KashAddon<?> addon) {
+        this(addon, null);
+    }
+
+    protected ConfigurationReader(KashAddon<?> addon, String key) {
         this.addon = addon;
-        this.key = this.key();
+        this.key = key == null ? this.key() : key;
+    }
+
+    protected boolean autoLoad() {
+        return true;
     }
 
     public void reload() {

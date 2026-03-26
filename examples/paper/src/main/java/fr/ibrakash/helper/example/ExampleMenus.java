@@ -16,8 +16,6 @@ public class ExampleMenus extends ConfigurationMenus {
 
     protected ExampleMenus(KashAddon<JavaPlugin> addon) {
         super(addon);
-
-        this.reload();
     }
 
     @Override

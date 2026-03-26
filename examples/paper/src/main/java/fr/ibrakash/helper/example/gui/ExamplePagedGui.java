@@ -4,6 +4,7 @@ import fr.ibrakash.helper.example.ExamplePlugin;
 import fr.ibrakash.helper.paper.gui.menu.PagedGui;
 import fr.ibrakash.helper.paper.item.ItemUtil;
 import fr.ibrakash.helper.paper.item.replacer.ListedItemReplacer;
+import fr.ibrakash.helper.paper.material.MaterialUtil;
 import fr.ibrakash.helper.stream.StreamFilter;
 import fr.ibrakash.helper.paper.text.PaperTextReplacer;
 import fr.ibrakash.helper.paper.text.PaperTextUtil;
@@ -12,8 +13,10 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ExamplePagedGui extends PagedGui<Material> {
@@ -63,10 +66,7 @@ public class ExamplePagedGui extends PagedGui<Material> {
         if (diamond) {
             return List.of(Material.DIAMOND, Material.APPLE);
         }
-        return this.filter.applyFilters(Stream.of(Material.values())
-                .filter(material -> !material.isLegacy())
-                .filter(Material::isBlock)
-                .filter(material -> !material.isAir()));
+        return this.filter.applyFilters(new ArrayList<>(MaterialUtil.getAllItems()));
     }
 
     @Override

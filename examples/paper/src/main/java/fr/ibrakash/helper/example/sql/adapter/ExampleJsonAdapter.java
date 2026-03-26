@@ -2,7 +2,7 @@ package fr.ibrakash.helper.example.sql.adapter;
 
 import fr.ibrakash.helper.example.sql.ExampleData;
 import fr.ibrakash.helper.example.sql.ExampleRepository;
-import fr.ibrakash.helper.persistence.adapter.JsonAdapter;
+import fr.ibrakash.helper.persistence.adapter.json.JsonAdapter;
 
 import java.util.Comparator;
 import java.util.List;

@@ -1,4 +1,4 @@
-dependencies {
-    api project(':kash-helper-common')
+plugins {
+    id 'java'
 }
 

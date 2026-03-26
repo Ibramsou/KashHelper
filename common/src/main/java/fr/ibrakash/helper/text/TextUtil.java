@@ -75,11 +75,11 @@ public abstract class TextUtil<S> {
         return this.replacedItemName(input, Arrays.asList(replacers));
     }
 
-    public abstract S replacedItemName(String input, List<Object> replacers);
+    protected abstract S replacedItemName(String input, List<Object> replacers);
 
-    public List<S> replacedItemLore(List<String> input, Object... replacers) {
+    protected List<S> replacedItemLore(List<String> input, Object... replacers) {
         return this.replacedItemLore(input, Arrays.asList(replacers));
     }
 
-    public abstract List<S> replacedItemLore(List<String> input, List<Object> replacers);
+    protected abstract List<S> replacedItemLore(List<String> input, List<Object> replacers);
 }

@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# KashHelper – JDA System Locale (plain-text messages)
+#
+# All values can be:
+#   - a single string:    no-permission: "You don't have permission."
+#   - a list of lines:    no-permission:
+#                           - "Line 1"
+#                           - "Line 2"
+#
+# Placeholder syntax: %placeholder%
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Sent (ephemeral reply) when a user tries to run a command without the required permissions.
+no-permission: "❌ You don't have permission to do this."
+
+# Sent as a fallback reply when the bot cannot deliver a DM to a user
+# (privacy settings block the DM).
+direct-messages-disabled: "📪 I couldn't send you a direct message. Please enable DMs from server members."
+
+# Generic unexpected-error message surfaced to the user.
+error-occurred: "⚠️ An unexpected error occurred. Please try again later."
+
+# Sent when a command is used outside a guild (e.g. in DMs) but requires a guild context.
+command-only-guild: "⚠️ This command can only be used inside a server."
+
+# Sent when a command is used inside a guild but requires a DM context.
+command-only-dm: "⚠️ This command can only be used in direct messages."

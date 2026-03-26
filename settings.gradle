@@ -1,7 +1,6 @@
 rootProject.name = 'KashHelper'
 
 include 'kash-helper-common'
-include 'kash-helper-config'
 
 include 'kash-helper-paper'
 include 'kash-helper-jda'
@@ -12,12 +11,11 @@ include 'kash-helper-jda:example'
 include 'kash-helper-hytale:example'
 
 project(':kash-helper-common').projectDir = file('common')
-project(':kash-helper-config').projectDir = file('config')
 
 project(':kash-helper-paper').projectDir = file('platforms/paper')
 project(':kash-helper-jda').projectDir = file('platforms/jda')
 project(':kash-helper-hytale').projectDir = file('platforms/hytale')
 
 project(':kash-helper-paper:example').projectDir = file('examples/paper')
-project(':kash-helper-jda:example').projectDir = file('platforms/jda/example')
-project(':kash-helper-hytale:example').projectDir = file('platforms/hytale/example')
+project(':kash-helper-jda:example').projectDir = file('examples/jda')
+project(':kash-helper-hytale:example').projectDir = file('examples/hytale')

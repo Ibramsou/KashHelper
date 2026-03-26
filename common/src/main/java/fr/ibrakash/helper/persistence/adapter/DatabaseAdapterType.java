@@ -6,7 +6,6 @@ import fr.ibrakash.helper.persistence.PersistenceType;
  * Maps persistence backend types to their adapter counterpart.
  */
 public enum DatabaseAdapterType {
-
     JSON(PersistenceType.JSON),
     SQL(PersistenceType.SQL),
     MONGO(PersistenceType.MONGODB);

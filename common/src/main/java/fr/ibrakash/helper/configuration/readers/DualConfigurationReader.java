@@ -13,7 +13,14 @@ public abstract class DualConfigurationReader<K, V> extends ConfigurationReader 
     protected final Map<String, V> secondPathMap = new HashMap<>();
 
     protected DualConfigurationReader(KashAddon<?> addon) {
-        super(addon);
+        this(addon, null);
+    }
+
+    protected DualConfigurationReader(KashAddon<?> addon, String key) {
+        super(addon, key);
+        if (this.autoLoad()) {
+            this.reload();
+        }
     }
 
     @Override

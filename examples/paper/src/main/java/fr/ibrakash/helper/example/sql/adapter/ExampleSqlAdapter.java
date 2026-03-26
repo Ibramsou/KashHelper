@@ -3,7 +3,7 @@ package fr.ibrakash.helper.example.sql.adapter;
 import fr.ibrakash.helper.example.sql.ExampleData;
 import fr.ibrakash.helper.example.sql.ExampleRepository;
 import fr.ibrakash.helper.persistence.EntityStore;
-import fr.ibrakash.helper.persistence.adapter.SqlAdapter;
+import fr.ibrakash.helper.persistence.adapter.sql.SqlAdapter;
 
 /**
  * SQL adapter for {@link ExampleRepository}.
