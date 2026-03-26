@@ -21,7 +21,7 @@ public class ExampleJdaConfig extends KashJdaConfig {
 
     @Override
     public String defaultToken() {
-        return "YOUR_DISCORD_BOT_TOKEN_HERE";
+        return "YOUR_BOT_TOKEN";
     }
 
     @Override
