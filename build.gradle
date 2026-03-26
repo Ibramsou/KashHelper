@@ -1,25 +1,30 @@
 plugins {
     id 'java-library'
-    id 'maven-publish'
-    id 'signing'
     id('com.gradleup.shadow') version '9.3.1' apply false
+    id('com.vanniktech.maven.publish') version '0.36.0' apply false
 }
 
 ext {
     publishableModules = [
             'kash-helper-common',
-            'kash-helper-config',
             'kash-helper-paper',
-            /*'kash-helper-jda',
-            'kash-helper-hytale'
-
-             */
+            'kash-helper-jda'
     ] as Set
 }
 
+// Maven Central rejects SNAPSHOTs for release publishing: strip suffix when central tasks run.
+def configuredVersion = (findProperty('projectVersion') ?: '0.0.1-SNAPSHOT').toString()
+def centralPublishRequested = gradle.startParameter.taskNames.any {
+    def task = it.toLowerCase()
+    task.contains('publishandreleasetomavencentral') || task.contains('publishtomavencentral')
+}
+def effectiveVersion = (centralPublishRequested && configuredVersion.endsWith('-SNAPSHOT'))
+        ? configuredVersion - '-SNAPSHOT'
+        : configuredVersion
+
 allprojects {
     group = 'xyz.imrine'
-    version = '2.0.0-SNAPSHOT'
+    version = effectiveVersion
 
     repositories {
         mavenCentral()
@@ -62,66 +67,46 @@ subprojects {
     }
 
     if (rootProject.publishableModules.contains(project.name)) {
-        apply plugin: 'maven-publish'
+        apply plugin: 'com.vanniktech.maven.publish'
         apply plugin: 'signing'
 
-        publishing {
-            publications {
-                create('mavenJava', MavenPublication) {
-                    artifactId = project.name
-                    from components.java
+        mavenPublishing {
+            coordinates(project.group.toString(), project.name, project.version.toString())
+            publishToMavenCentral(true)
+            signAllPublications()
 
-                    pom {
-                        name = "KashHelper ${project.name - 'kash-helper-'}".trim()
-                        description = "${project.name} module for KashHelper"
-                        url = 'https://imrine.xyz'
-                        licenses {
-                            license {
-                                name = 'The Apache License, Version 2.0'
-                                url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                            }
-                        }
-                        developers {
-                            developer {
-                                id = 'Bramsou'
-                                name = 'Ibrahim'
-                                email = 'braimsou@gmail.com'
-                            }
-                        }
-                        scm {
-                            url = 'https://github.com/Ibramsou/KashHelper'
-                            connection = 'scm:git:git://github.com/Ibramsou/KashHelper.git'
-                            developerConnection = 'scm:git:ssh://github.com/Ibramsou/KashHelper.git'
-                        }
+            pom {
+                name = "KashHelper ${project.name - 'kash-helper-'}".trim()
+                description = "${project.name} module for KashHelper"
+                url = 'https://github.com/Ibramsou/KashHelper'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
-            }
-
-            repositories {
-                maven {
-                    name = 'Sonatype'
-                    def releaseUrl = findProperty('mavenCentralReleaseUrl') ?: 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-                    def snapshotUrl = findProperty('mavenCentralSnapshotUrl') ?: 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-                    url = uri(project.version.toString().endsWith('-SNAPSHOT') ? snapshotUrl : releaseUrl)
-                    credentials {
-                        username = (findProperty('mavenCentralUsername') ?: System.getenv('MAVEN_CENTRAL_USERNAME'))?.toString()
-                        password = (findProperty('mavenCentralPassword') ?: System.getenv('MAVEN_CENTRAL_PASSWORD'))?.toString()
+                developers {
+                    developer {
+                        id = 'Bramsou'
+                        name = 'Ibrahim'
+                        email = 'braimsou@gmail.com'
                     }
+                }
+                scm {
+                    url = 'https://github.com/Ibramsou/KashHelper'
+                    connection = 'scm:git:git://github.com/Ibramsou/KashHelper.git'
+                    developerConnection = 'scm:git:ssh://github.com/Ibramsou/KashHelper.git'
                 }
             }
         }
 
-        def signingKeyFile = (findProperty('signingInMemoryKeyFile') ?: System.getenv('SIGNING_IN_MEMORY_KEY_FILE'))?.toString()
-        def signingPassword = (findProperty('signingInMemoryKeyPassword') ?: System.getenv('SIGNING_IN_MEMORY_KEY_PASSWORD'))?.toString()
-        def signingKey = (signingKeyFile && file(signingKeyFile).exists()) ? file(signingKeyFile).text : null
-
-        signing {
-            required {
-                signingKey != null && signingPassword != null && gradle.taskGraph.allTasks.any { it.name.toLowerCase().contains('publish') }
-            }
-            if (signingKey && signingPassword) {
-                useInMemoryPgpKeys(signingKey, signingPassword)
-                sign publishing.publications.named('mavenJava').get()
+        // Support key-file based signing setup from ~/.gradle/gradle.properties
+        final signingKeyFile = (findProperty('signingInMemoryKeyFile') ?: System.getenv('SIGNING_IN_MEMORY_KEY_FILE'))?.toString()
+        final signingKeyPassword = (findProperty('signingInMemoryKeyPassword') ?: System.getenv('SIGNING_IN_MEMORY_KEY_PASSWORD'))?.toString()
+        if (signingKeyFile && file(signingKeyFile).exists()) {
+            signing {
+                useInMemoryPgpKeys(file(signingKeyFile).text, signingKeyPassword)
+                sign(publishing.publications)
             }
         }
     }
