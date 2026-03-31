@@ -75,7 +75,10 @@ public abstract class PagedGui<O> extends AbstractInventoryGui<ConfigPagedGui> i
 
                 GuiMenuItem item = new GuiMenuItem(this, pagedItem, configItem -> pagedItemReplacer == null
                         ? configItem.build(replacer, this.itemReplacer)
-                        : configItem.build(replacer, pagedItemReplacer, pagedObject.object()));
+                        : configItem.builder()
+                            .textReplacer(replacer)
+                            .itemReplacer(pagedItemReplacer, pagedObject.object())
+                            .build());
                 item.setDefaultConsumer(pagedObject.consumer());
                 slotItems.put(slot, item);
             }
