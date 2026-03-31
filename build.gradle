@@ -41,7 +41,6 @@ subprojects {
             languageVersion = JavaLanguageVersion.of(21)
         }
         withSourcesJar()
-        withJavadocJar()
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -105,8 +104,8 @@ subprojects {
         final signingKeyPassword = (findProperty('signingInMemoryKeyPassword') ?: System.getenv('SIGNING_IN_MEMORY_KEY_PASSWORD'))?.toString()
         if (signingKeyFile && file(signingKeyFile).exists()) {
             signing {
+                // Keys are configured here; publication selection is handled by signAllPublications().
                 useInMemoryPgpKeys(file(signingKeyFile).text, signingKeyPassword)
-                sign(publishing.publications)
             }
         }
     }
