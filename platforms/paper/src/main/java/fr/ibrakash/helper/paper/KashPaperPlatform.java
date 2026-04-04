@@ -2,6 +2,7 @@ package fr.ibrakash.helper.paper;
 
 import fr.ibrakash.helper.configuration.Configurations;
 import fr.ibrakash.helper.persistence.entity.PersistedBlobSerializerRegistry;
+import fr.ibrakash.helper.paper.chunk.entity.EntityChunkTrackingCache;
 import fr.ibrakash.helper.paper.configuration.serializers.SoundSerializer;
 import fr.ibrakash.helper.paper.configuration.serializers.WorldSerializer;
 import fr.ibrakash.helper.paper.serialization.itemstack.DataItemStackArraySerializer;
@@ -43,7 +44,9 @@ public class KashPaperPlatform implements KashPlatform<JavaPlugin> {
 
     @Override
     public KashAddon<JavaPlugin> registerAddon(JavaPlugin addon) {
-        return new KashPaperAddon(addon);
+        KashPaperAddon paperAddon = new KashPaperAddon(addon);
+        EntityChunkTrackingCache.register(paperAddon);
+        return paperAddon;
     }
 
     @Override

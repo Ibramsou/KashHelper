@@ -2,30 +2,42 @@ package fr.ibrakash.helper.paper.chunk.entity;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import fr.ibrakash.helper.paper.KashPaperAddon;
+import fr.ibrakash.helper.platform.KashAddon;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityChunkTrackingCache {
 
     private static final Table<JavaPlugin, UUID, LivingEntity> TRACKING_ENTITIES = HashBasedTable.create();
     private static final Table<JavaPlugin, Chunk, Integer> TRACKING_CHUNKS = HashBasedTable.create();
+    private static final Set<Plugin> REGISTERED_PLUGINS = ConcurrentHashMap.newKeySet();
+
+    public static void register(KashAddon<?> addon) {
+        Object raw = addon.getRaw();
+        if (!(raw instanceof JavaPlugin plugin)) {
+            return;
+        }
+        ensureListenerRegistered(addon, plugin);
+    }
 
     public static void unload(JavaPlugin plugin) {
         TRACKING_ENTITIES.row(plugin).clear();
         TRACKING_CHUNKS.row(plugin).keySet().forEach(chunk -> chunk.removePluginChunkTicket(plugin));
-    }
-
-    public static void load(JavaPlugin plugin) {
-        Bukkit.getPluginManager().registerEvents(new EntityChunkListener(plugin), plugin);
+        TRACKING_CHUNKS.row(plugin).clear();
     }
 
     public static void trackEntity(JavaPlugin plugin, final LivingEntity entity) {
+        ensureListenerRegistered(null, plugin);
         TRACKING_ENTITIES.put(plugin, entity.getUniqueId(), entity);
         trackChunk(plugin, entity.getChunk());
     }
@@ -49,6 +61,18 @@ public class EntityChunkTrackingCache {
         LivingEntity livingEntity = TRACKING_ENTITIES.remove(plugin, entity.getUniqueId());
         if (livingEntity == null) return;
         unTrackChunk(plugin, livingEntity.getChunk());
+    }
+
+    private static void ensureListenerRegistered(KashAddon<?> addon, Plugin plugin) {
+        if (addon instanceof KashPaperAddon paperAddon) {
+            if (!paperAddon.markEntityChunkListenerRegistered()) {
+                return;
+            }
+        } else if (!REGISTERED_PLUGINS.add(plugin)) {
+            return;
+        }
+
+        Bukkit.getPluginManager().registerEvents(new EntityChunkListener((JavaPlugin) plugin), plugin);
     }
 
     private static void trackChunk(JavaPlugin plugin, Chunk chunk) {

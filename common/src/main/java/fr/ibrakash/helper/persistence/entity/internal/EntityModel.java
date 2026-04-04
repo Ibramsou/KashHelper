@@ -25,9 +25,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 public final class EntityModel<T, ID> {
 
@@ -244,7 +246,7 @@ public final class EntityModel<T, ID> {
         VarHandle rootHandle = varHandle(rootField);
         Constructor<?> rootConstructor = constructor(rootField.getType());
 
-        for (Field nested : rootField.getType().getDeclaredFields()) {
+        for (Field nested : collectInstanceFields(rootField.getType())) {
             nested.setAccessible(true);
             int mod = nested.getModifiers();
             if (java.lang.reflect.Modifier.isStatic(mod) || java.lang.reflect.Modifier.isTransient(mod) || nested.isSynthetic()) {
@@ -261,6 +263,22 @@ public final class EntityModel<T, ID> {
         }
 
         return out;
+    }
+
+    private static List<Field> collectInstanceFields(Class<?> type) {
+        List<Field> fields = new ArrayList<>();
+        Set<String> seenNames = new HashSet<>();
+
+        for (Class<?> cursor = type; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
+            for (Field field : cursor.getDeclaredFields()) {
+                if (!seenNames.add(field.getName())) {
+                    continue;
+                }
+                fields.add(field);
+            }
+        }
+
+        return fields;
     }
 
     private static RelationDef parseRelation(Field field, PersistedRelation relation, Field idField) {

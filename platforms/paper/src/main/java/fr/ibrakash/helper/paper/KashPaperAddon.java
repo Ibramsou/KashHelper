@@ -8,6 +8,7 @@ import java.io.File;
 public class KashPaperAddon extends KashAddon<JavaPlugin> {
 
     private boolean guiListenerRegistered;
+    private boolean entityChunkListenerRegistered;
 
     public KashPaperAddon(JavaPlugin raw) {
         super(raw);
@@ -23,6 +24,14 @@ public class KashPaperAddon extends KashAddon<JavaPlugin> {
             return false;
         }
         this.guiListenerRegistered = true;
+        return true;
+    }
+
+    public synchronized boolean markEntityChunkListenerRegistered() {
+        if (this.entityChunkListenerRegistered) {
+            return false;
+        }
+        this.entityChunkListenerRegistered = true;
         return true;
     }
 }

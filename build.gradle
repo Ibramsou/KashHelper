@@ -13,7 +13,7 @@ ext {
 }
 
 // Maven Central rejects SNAPSHOTs for release publishing: strip suffix when central tasks run.
-def configuredVersion = (findProperty('projectVersion') ?: '0.0.2-SNAPSHOT').toString()
+def configuredVersion = (findProperty('projectVersion') ?: '0.0.3').toString()
 def centralPublishRequested = gradle.startParameter.taskNames.any {
     def task = it.toLowerCase()
     task.contains('publishandreleasetomavencentral') || task.contains('publishtomavencentral')
@@ -109,4 +109,19 @@ subprojects {
             }
         }
     }
+}
+
+tasks.register('testsQuick') {
+    group = 'verification'
+    description = 'Runs quick persistence checks and compiles the Paper example.'
+    dependsOn(':kash-helper-common:persistenceSmokeTests')
+    dependsOn(':kash-helper-paper:example:compileJava')
+}
+
+tasks.register('testsAll') {
+    group = 'verification'
+    description = 'Runs test tasks for key modules.'
+    dependsOn(':kash-helper-common:test')
+    dependsOn(':kash-helper-paper:test')
+    dependsOn(':kash-helper-jda:test')
 }

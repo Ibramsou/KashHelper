@@ -113,3 +113,21 @@ fallbacks: [SQL, JSON]
 cd /home/bramsou/Kash/KashHelper
 ./gradlew ':kash-helper-paper:example:build'
 ```
+
+## Embedded inheritance example
+
+`ExampleData` uses:
+
+- `@PersistedEmbedded(prefix = "settings_")` on `ExampleSettings`
+- `ExampleSettings extends ExampleDisplayAnchor`
+
+This produces SQL columns from both classes:
+
+- from `ExampleSettings`: `settings_notify`, `settings_theme`
+- inherited from `ExampleDisplayAnchor`: `settings_x`, `settings_y`, `settings_z`
+
+Files to inspect:
+
+- `examples/paper/src/main/java/fr/ibrakash/helper/example/sql/ExampleData.java`
+- `examples/paper/src/main/java/fr/ibrakash/helper/example/sql/ExampleSettings.java`
+- `examples/paper/src/main/java/fr/ibrakash/helper/example/sql/ExampleDisplayAnchor.java`

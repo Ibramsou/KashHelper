@@ -2,7 +2,7 @@ package fr.ibrakash.helper.example.sql;
 
 import fr.ibrakash.helper.persistence.entity.PersistedColumn;
 
-public class ExampleSettings {
+public class ExampleSettings extends ExampleDisplayAnchor {
 
     @PersistedColumn(value = "notify", nullable = false, defaultValue = "true")
     private boolean notifications = true;
@@ -11,9 +11,17 @@ public class ExampleSettings {
     private String theme = "default";
 
     public ExampleSettings() {
+        super();
     }
 
     public ExampleSettings(boolean notifications, String theme) {
+        super();
+        this.notifications = notifications;
+        this.theme = theme;
+    }
+
+    public ExampleSettings(boolean notifications, String theme, int x, int y, int z) {
+        super(x, y, z);
         this.notifications = notifications;
         this.theme = theme;
     }
@@ -34,4 +42,3 @@ public class ExampleSettings {
         this.theme = theme;
     }
 }
-

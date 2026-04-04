@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class EntityChunkListener implements Listener {
@@ -29,5 +30,12 @@ public class EntityChunkListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onRemoveFromWorld(EntityRemoveFromWorldEvent event) {
         EntityChunkTrackingCache.removeEntityIfTracked(this.plugin, event.getEntity());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPluginDisable(PluginDisableEvent event) {
+        if (event.getPlugin().equals(this.plugin)) {
+            EntityChunkTrackingCache.unload(this.plugin);
+        }
     }
 }

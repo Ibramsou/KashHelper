@@ -6,7 +6,6 @@ import fr.ibrakash.helper.example.sql.blob.ExampleBadgeListBlobSerializer;
 import fr.ibrakash.helper.example.sql.blob.ExampleStringListStorage;
 import fr.ibrakash.helper.example.sql.blob.ExampleStringLongMapBlobSerializer;
 import fr.ibrakash.helper.persistence.entity.*;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,6 +41,7 @@ public class ExampleData {
     @PersistedColumn(value = "display_name", length = 64)
     private String displayName;
 
+    // Includes inherited columns from ExampleDisplayAnchor: settings_x/settings_y/settings_z.
     @PersistedEmbedded(prefix = "settings_")
     private ExampleSettings settings = new ExampleSettings();
 
@@ -117,7 +117,7 @@ public class ExampleData {
         data.points = 0;
         data.score = 0L;
         data.displayName = (displayName == null || displayName.isBlank()) ? id : displayName;
-        data.settings = new ExampleSettings(true, "default");
+        data.settings = new ExampleSettings(true, "default", 0, 64, 0);
         return data;
     }
 

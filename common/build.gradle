@@ -31,4 +31,23 @@ test {
     useJUnitPlatform()
 }
 
+tasks.register('embeddedInheritanceTest', Test) {
+    useJUnitPlatform()
+    description = 'Runs only the embedded inheritance regression test.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/EntityModelEmbeddedInheritanceTest.class'
+}
+
+tasks.register('persistenceSmokeTests', Test) {
+    useJUnitPlatform()
+    description = 'Runs targeted persistence smoke tests used for quick trials.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include '**/EntityModelEmbeddedInheritanceTest.class'
+    include '**/SqlEntityStoreRankTest.class'
+}
+
 // Persistence and SQL sources stay in common and are published from this module.
