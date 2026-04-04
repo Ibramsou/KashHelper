@@ -43,7 +43,7 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
     private static final MiniMessage MM = MiniMessage.miniMessage();
 
     private static final List<String> SUBS = List.of(
-            "create", "score", "points", "setting", "anchor", "tag", "home", "blob",
+            "create", "score", "points", "setting", "anchor", "nullsettings", "tag", "home", "blob",
             "top", "rank", "rankupdate", "rankbulk", "seed",
             "saveall", "save", "delete", "bulkload", "info"
     );
@@ -152,7 +152,7 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
                         return;
                     }
-                    ExampleSettings current = data.getSettings();
+                    ExampleSettings current = data.getSettings() == null ? new ExampleSettings() : data.getSettings();
                     data.setSettings(new ExampleSettings(
                             notifications,
                             theme,
@@ -192,11 +192,32 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
                         return;
                     }
+                    if (data.getSettings() == null) {
+                        data.setSettings(new ExampleSettings());
+                    }
                     data.getSettings().setX(fx);
                     data.getSettings().setY(fy);
                     data.getSettings().setZ(fz);
                     repo.save(data);
                     player.sendMessage(MM.deserialize("<green>Anchor updated for <white>" + id + "<green> -> <white>" + fx + "," + fy + "," + fz));
+                });
+            }
+
+            // /exampledata nullsettings <id>
+            case "nullsettings" -> {
+                if (args.length < 2) {
+                    player.sendMessage(MM.deserialize("<red>Usage: /" + label + " nullsettings <id>"));
+                    return true;
+                }
+                String id = args[1];
+                repo.getCached(id).thenAccept(data -> {
+                    if (data == null) {
+                        player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
+                        return;
+                    }
+                    data.setSettings(null);
+                    repo.save(data);
+                    player.sendMessage(MM.deserialize("<green>Settings forced to <white>null <green>for <white>" + id));
                 });
             }
 
@@ -552,13 +573,14 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
                         return;
                     }
+                    ExampleSettings settings = data.getSettings() == null ? new ExampleSettings() : data.getSettings();
                     player.sendMessage(MM.deserialize("<gold>Profile <white>" + id));
                     player.sendMessage(MM.deserialize("<gray>  display : <white>" + data.getDisplayName()));
                     player.sendMessage(MM.deserialize("<gray>  score   : <white>" + data.getScore()));
                     player.sendMessage(MM.deserialize("<gray>  points  : <white>" + data.getPoints()));
-                    player.sendMessage(MM.deserialize("<gray>  settings: <white>notify=" + data.getSettings().isNotifications()
-                            + " <gray>theme=<white>" + data.getSettings().getTheme()
-                            + " <gray>anchor=<white>" + data.getSettings().getX() + "," + data.getSettings().getY() + "," + data.getSettings().getZ()));
+                    player.sendMessage(MM.deserialize("<gray>  settings: <white>notify=" + settings.isNotifications()
+                            + " <gray>theme=<white>" + settings.getTheme()
+                            + " <gray>anchor=<white>" + settings.getX() + "," + settings.getY() + "," + settings.getZ()));
                     player.sendMessage(MM.deserialize("<gray>  tags    : <white>" + data.getTags()));
                     player.sendMessage(MM.deserialize("<gray>  homes   : <white>" + data.getHomes().size()));
                     player.sendMessage(MM.deserialize("<gray>  badges  : <white>" + data.getBadges()));
@@ -768,6 +790,7 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(MM.deserialize("<gray>  /" + label + " points <id> <value>"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " setting <id> <notifications:true|false> <theme>"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " anchor <id> <x> <y> <z>"));
+        player.sendMessage(MM.deserialize("<gray>  /" + label + " nullsettings <id>"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " tag <add|remove|list> <id> [tag]"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " home <add|remove|list> <id> [...]"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " blob <badge|stat|note|raw> <id> ..."));

@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
+import java.util.UUID;
 
 public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
 
@@ -335,7 +336,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
 
         if (selection.full()) {
             for (EntityModel.Column column : this.model.columns()) {
-                Object value = this.model.readColumnValue(entity, column);
+                Object value = resolveColumnValueForSave(column, this.model.readColumnValue(entity, column));
                 EntityTypeMapper.bind(stmt, i++, column.type(), value);
             }
             for (EntityModel.BlobDef blob : this.model.blobs()) {
@@ -346,7 +347,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
 
         for (EntityModel.Column column : this.model.columns()) {
             if (!selection.columns().contains(column.name())) continue;
-            Object value = this.model.readColumnValue(entity, column);
+            Object value = resolveColumnValueForSave(column, this.model.readColumnValue(entity, column));
             EntityTypeMapper.bind(stmt, i++, column.type(), value);
         }
 
@@ -354,6 +355,75 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
             if (!selection.blobs().contains(blob.name())) continue;
             stmt.setBytes(i++, toBlobBytes(entity, blob));
         }
+    }
+
+    private Object resolveColumnValueForSave(EntityModel.Column column, Object currentValue) {
+        if (currentValue != null) {
+            return currentValue;
+        }
+
+        if (!column.defaultValue().isBlank()) {
+            return parseColumnDefaultValue(column);
+        }
+
+        return switch (column.type().getName()) {
+            case "int" -> 0;
+            case "long" -> 0L;
+            case "boolean" -> false;
+            case "float" -> 0F;
+            case "double" -> 0D;
+            default -> null;
+        };
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Object parseColumnDefaultValue(EntityModel.Column column) {
+        Class<?> type = column.type();
+        String raw = normalizeDefaultLiteral(column.defaultValue());
+
+        try {
+            if (type == String.class) {
+                return raw;
+            }
+            if (type == int.class || type == Integer.class) {
+                return Integer.parseInt(raw);
+            }
+            if (type == long.class || type == Long.class) {
+                return Long.parseLong(raw);
+            }
+            if (type == boolean.class || type == Boolean.class) {
+                return Boolean.parseBoolean(raw);
+            }
+            if (type == float.class || type == Float.class) {
+                return Float.parseFloat(raw);
+            }
+            if (type == double.class || type == Double.class) {
+                return Double.parseDouble(raw);
+            }
+            if (type == UUID.class) {
+                return UUID.fromString(raw);
+            }
+            if (type.isEnum()) {
+                return Enum.valueOf((Class<? extends Enum>) type, raw);
+            }
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException("Unable to parse default value '" + column.defaultValue() + "' for column '"
+                    + column.name() + "' (" + type.getSimpleName() + ")", ex);
+        }
+
+        throw new IllegalArgumentException("Unsupported default value type for column '" + column.name() + "': " + type.getName());
+    }
+
+    private String normalizeDefaultLiteral(String literal) {
+        String trimmed = literal == null ? "" : literal.trim();
+        if (trimmed.length() >= 2) {
+            char first = trimmed.charAt(0);
+            char last = trimmed.charAt(trimmed.length() - 1);
+            if ((first == '\'' && last == '\'') || (first == '"' && last == '"')) {
+                return trimmed.substring(1, trimmed.length() - 1);
+            }
+        }
+        return trimmed;
     }
 
     private T mapRow(ResultSet rs, Set<String> columns) throws Exception {
