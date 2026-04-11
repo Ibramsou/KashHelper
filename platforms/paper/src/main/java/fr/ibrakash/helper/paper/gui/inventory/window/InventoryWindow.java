@@ -3,6 +3,7 @@ package fr.ibrakash.helper.paper.gui.inventory.window;
 import fr.ibrakash.helper.paper.KashPaperAddon;
 import fr.ibrakash.helper.paper.gui.inventory.item.GuiMenuItem;
 import fr.ibrakash.helper.paper.gui.inventory.layout.GuiLayout;
+import fr.ibrakash.helper.paper.utils.QuickScheduler;
 import fr.ibrakash.helper.platform.KashAddon;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -13,13 +14,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -29,7 +30,8 @@ public final class InventoryWindow {
     private static final Map<Inventory, InventoryWindow> OPEN_WINDOWS = new ConcurrentHashMap<>();
     private static final Map<UUID, InventoryWindow> OPEN_WINDOWS_BY_VIEWER = new ConcurrentHashMap<>();
     private static final Set<Plugin> REGISTERED_PLUGINS = ConcurrentHashMap.newKeySet();
-    private static final Map<UUID, BukkitTask> PENDING_CLOSE_TASKS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> PENDING_CLOSE_TOKENS = new ConcurrentHashMap<>();
+    private static final AtomicLong CLOSE_TOKEN_SEQUENCE = new AtomicLong();
 
     private final Player viewer;
     private final GuiLayout layout;
@@ -37,7 +39,7 @@ public final class InventoryWindow {
     private final Supplier<Map<Integer, GuiMenuItem>> slotSupplier;
     private final BooleanSupplier byPlayerCloseSupplier;
     private final Consumer<Boolean> closeConsumer;
-    private final JavaPlugin plugin;
+    private final QuickScheduler scheduler;
 
     private Inventory inventory;
     private Map<Integer, GuiMenuItem> slotItems = new HashMap<>();
@@ -53,7 +55,7 @@ public final class InventoryWindow {
             BooleanSupplier byPlayerCloseSupplier,
             Consumer<Boolean> closeConsumer
     ) {
-        this.plugin = plugin;
+        this.scheduler = new QuickScheduler(plugin);
         this.viewer = viewer;
         this.layout = layout;
         this.titleSupplier = titleSupplier;
@@ -70,7 +72,7 @@ public final class InventoryWindow {
 
     public void redraw() {
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(this.plugin, this::redraw);
+            this.scheduler.runPlayerTask(this.viewer, this::redraw);
             return;
         }
 
@@ -101,7 +103,7 @@ public final class InventoryWindow {
 
     public void close() {
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(this.plugin, this::close);
+            this.scheduler.runPlayerTask(this.viewer, this::close);
             return;
         }
         this.viewer.closeInventory();
@@ -109,7 +111,7 @@ public final class InventoryWindow {
 
     private void updateItem(GuiMenuItem item) {
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(this.plugin, () -> this.updateItem(item));
+            this.scheduler.runPlayerTask(this.viewer, () -> this.updateItem(item));
             return;
         }
         if (this.inventory == null) {
@@ -153,7 +155,7 @@ public final class InventoryWindow {
             return;
         }
 
-        Bukkit.getPluginManager().registerEvents(new MenuInventoryListener(plugin), plugin);
+        Bukkit.getPluginManager().registerEvents(new MenuInventoryListener(), plugin);
     }
 
     static void onInventoryClick(InventoryClickEvent event) {
@@ -165,16 +167,17 @@ public final class InventoryWindow {
                 OPEN_WINDOWS.putIfAbsent(top, window);
             }
         }
-        if (window == null) {
-            window = OPEN_WINDOWS_BY_VIEWER.get(event.getWhoClicked().getUniqueId());
+
+        // Never intercept clicks when the active top inventory is not this managed GUI.
+        if (window == null || !window.isManagedInventory(top)) {
+            return;
         }
-        if (window != null) {
-            cancelPendingClose(event.getWhoClicked().getUniqueId());
-            window.handleClick(event);
-        }
+
+        cancelPendingClose(event.getWhoClicked().getUniqueId());
+        window.handleClick(event);
     }
 
-    static void onInventoryClose(Plugin plugin, InventoryCloseEvent event) {
+    static void onInventoryClose(InventoryCloseEvent event) {
         Inventory closedInventory = event.getInventory();
         InventoryWindow window = OPEN_WINDOWS.get(closedInventory);
         if (window == null) {
@@ -198,14 +201,24 @@ public final class InventoryWindow {
             return;
         }
 
-        scheduleCloseValidation(plugin, event.getPlayer().getUniqueId(), window, 8);
+        scheduleCloseValidation(event.getPlayer().getUniqueId(), window, 8);
     }
 
-    private static void scheduleCloseValidation(Plugin plugin, UUID viewerId, InventoryWindow target, int retries) {
+    private static void scheduleCloseValidation(UUID viewerId, InventoryWindow target, int retries) {
         cancelPendingClose(viewerId);
-        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            PENDING_CLOSE_TASKS.remove(viewerId);
-            if (target.viewer == null || !target.viewer.isOnline()) {
+        long token = CLOSE_TOKEN_SEQUENCE.incrementAndGet();
+        PENDING_CLOSE_TOKENS.put(viewerId, token);
+        scheduleCloseValidation(viewerId, target, retries, token);
+    }
+
+    private static void scheduleCloseValidation(UUID viewerId, InventoryWindow target, int retries, long token) {
+        target.scheduler.runPlayerTask(target.viewer, () -> {
+            if (!isCloseTokenActive(viewerId, token)) {
+                return;
+            }
+
+            if (!target.viewer.isOnline()) {
+                clearCloseToken(viewerId, token);
                 cleanupWindow(viewerId, target);
                 return;
             }
@@ -214,18 +227,19 @@ public final class InventoryWindow {
             if (target.isManagedInventory(currentTop)) {
                 OPEN_WINDOWS.putIfAbsent(currentTop, target);
                 OPEN_WINDOWS_BY_VIEWER.put(viewerId, target);
+                clearCloseToken(viewerId, token);
                 return;
             }
 
             if (retries > 1) {
-                scheduleCloseValidation(plugin, viewerId, target, retries - 1);
+                scheduleCloseValidation(viewerId, target, retries - 1, token);
                 return;
             }
 
+            clearCloseToken(viewerId, token);
             cleanupWindow(viewerId, target);
             target.handleClose();
-        }, 1L);
-        PENDING_CLOSE_TASKS.put(viewerId, task);
+        });
     }
 
     private static void cleanupWindow(UUID viewerId, InventoryWindow target) {
@@ -234,10 +248,16 @@ public final class InventoryWindow {
     }
 
     private static void cancelPendingClose(UUID viewerId) {
-        BukkitTask existing = PENDING_CLOSE_TASKS.remove(viewerId);
-        if (existing != null) {
-            existing.cancel();
-        }
+        PENDING_CLOSE_TOKENS.remove(viewerId);
+    }
+
+    private static boolean isCloseTokenActive(UUID viewerId, long token) {
+        Long activeToken = PENDING_CLOSE_TOKENS.get(viewerId);
+        return activeToken != null && activeToken == token;
+    }
+
+    private static void clearCloseToken(UUID viewerId, long token) {
+        PENDING_CLOSE_TOKENS.remove(viewerId, token);
     }
 
     private boolean isManagedInventory(Inventory inventory) {
@@ -268,4 +288,3 @@ public final class InventoryWindow {
         }
     }
 }
-

@@ -21,22 +21,6 @@ import java.util.Optional;
 
 /**
  * {@code /exampledata <sub> [args...]}
- *
- * <ul>
- *   <li>{@code create   <id> [displayName]}  — create a new profile</li>
- *   <li>{@code score    <id> <value>}         — set score</li>
- *   <li>{@code points   <id> <value>}         — set points</li>
- *   <li>{@code setting   <id> <notifications:true|false> <theme>}         — set settings</li>
- *   <li>{@code tag      <add|remove|list> <id> [tag]}              — manage tags</li>
- *   <li>{@code home     <add|remove|list> <id> [...]}}              — manage homes</li>
- *   <li>{@code blob     <badge|stat|note|raw> <id> ...}              — manage blobs</li>
- *   <li>{@code top      [limit]}              — show top N by score (default 10)</li>
- *   <li>{@code saveall}                       — bulk-save entire cache</li>
- *   <li>{@code save     <id>}                 — save one profile</li>
- *   <li>{@code delete   <id>}                 — delete a profile</li>
- *   <li>{@code bulkload <id1> [id2 ...]}      — bulk-load profiles into cache</li>
- *   <li>{@code info     <id>}                 — show a profile's current values</li>
- * </ul>
  */
 public class ExampleDataCommand implements CommandExecutor, TabCompleter {
 
@@ -44,8 +28,7 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBS = List.of(
             "create", "score", "points", "setting", "anchor", "nullsettings", "tag", "home", "blob",
-            "top", "rank", "rankupdate", "rankbulk", "seed",
-            "saveall", "save", "delete", "bulkload", "info"
+            "top", "rank", "rankupdate", "rankbulk", "seed", "saveall", "save", "delete", "bulkload", "info"
     );
 
     private final ExamplePlugin plugin;
@@ -87,7 +70,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(MM.deserialize("<green>Created profile <white>" + id));
             }
 
-            // /exampledata score <id> <value>
             case "score" -> {
                 if (args.length < 3) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " score <id> <value>"));
@@ -101,6 +83,7 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(MM.deserialize("<red>Invalid number: <white>" + args[2]));
                     return true;
                 }
+
                 repo.getCached(id).thenAccept(data -> {
                     if (data == null) {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
@@ -108,11 +91,10 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                     }
                     data.setScore(value);
                     repo.save(data);
-                    player.sendMessage(MM.deserialize("<green>Score updated for <white>" + id));
+                    player.sendMessage(MM.deserialize("<green>Score updated for <white>" + id + "<green> -> <white>" + value));
                 });
             }
 
-            // /exampledata points <id> <value>
             case "points" -> {
                 if (args.length < 3) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " points <id> <value>"));
@@ -126,6 +108,7 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(MM.deserialize("<red>Invalid number: <white>" + args[2]));
                     return true;
                 }
+
                 repo.getCached(id).thenAccept(data -> {
                     if (data == null) {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
@@ -133,39 +116,47 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                     }
                     data.setPoints(value);
                     repo.save(data);
-                    player.sendMessage(MM.deserialize("<green>Points updated for <white>" + id));
+                    player.sendMessage(MM.deserialize("<green>Points updated for <white>" + id + "<green> -> <white>" + value));
                 });
             }
 
-            // /exampledata setting <id> <notifications:true|false> <theme>
             case "setting" -> {
                 if (args.length < 4) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " setting <id> <notifications:true|false> <theme>"));
                     return true;
                 }
+
                 String id = args[1];
-                boolean notifications = Boolean.parseBoolean(args[2]);
-                String theme = args[3];
+                String notifArg = args[2].toLowerCase(Locale.ROOT);
+                if (!notifArg.equals("true") && !notifArg.equals("false")) {
+                    player.sendMessage(MM.deserialize("<red>notifications must be <white>true <red>or <white>false"));
+                    return true;
+                }
+
+                boolean notifications = Boolean.parseBoolean(notifArg);
+                String theme = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
 
                 repo.getCached(id).thenAccept(data -> {
                     if (data == null) {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
                         return;
                     }
-                    ExampleSettings current = data.getSettings() == null ? new ExampleSettings() : data.getSettings();
-                    data.setSettings(new ExampleSettings(
-                            notifications,
-                            theme,
-                            current.getX(),
-                            current.getY(),
-                            current.getZ()
-                    ));
+
+                    ExampleSettings settings = data.getSettings();
+                    if (settings == null) {
+                        settings = new ExampleSettings();
+                        data.setSettings(settings);
+                    }
+                    settings.setNotifications(notifications);
+                    settings.setTheme(theme);
+
                     repo.save(data);
-                    player.sendMessage(MM.deserialize("<green>Settings updated for <white>" + id));
+                    player.sendMessage(MM.deserialize("<green>Settings updated for <white>" + id
+                            + "<green> -> notify=<white>" + notifications
+                            + " <green>theme=<white>" + theme));
                 });
             }
 
-            // /exampledata anchor <id> <x> <y> <z>
             case "anchor" -> {
                 if (args.length < 5) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " anchor <id> <x> <y> <z>"));
@@ -203,7 +194,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 });
             }
 
-            // /exampledata nullsettings <id>
             case "nullsettings" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " nullsettings <id>"));
@@ -221,7 +211,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 });
             }
 
-            // /exampledata tag <add|remove|list> <id> [tag]
             case "tag" -> {
                 if (args.length < 3) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " tag <add|remove|list> <id> [tag]"));
@@ -263,7 +252,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 });
             }
 
-            // /exampledata home <add|remove|list> <id> [...]
             case "home" -> {
                 if (args.length < 3) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " home <add|remove|list> <id> [...]"));
@@ -323,12 +311,10 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 });
             }
 
-            // /exampledata blob <badge|stat|note|raw> <id> [...]
             case "blob" -> {
                 return handleBlob(label, args, repo, player);
             }
 
-            // /exampledata top <cache|db|partial|dto|window|refresh> [limit]
             case "top" -> {
                 String mode = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "cache";
                 int limit = 10;
@@ -425,7 +411,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            // /exampledata rank <id>
             case "rank" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " rank <id>"));
@@ -446,7 +431,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 });
             }
 
-            // /exampledata rankupdate <id>
             case "rankupdate" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " rankupdate <id>"));
@@ -467,7 +451,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 });
             }
 
-            // /exampledata rankbulk <id1> [id2 ...]
             case "rankbulk" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " rankbulk <id1> [id2 ...]"));
@@ -491,7 +474,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            // /exampledata seed <count>
             case "seed" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " seed <count>"));
@@ -518,14 +500,12 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(MM.deserialize("<green>Seeded and saved <white>" + count + "<green> profile(s)."));
             }
 
-            // /exampledata saveall
             case "saveall" -> {
                 int size = repo.getCache().size();
                 repo.saveAll();
                 player.sendMessage(MM.deserialize("<green>Bulk-saved <white>" + size + " <green>profile(s)."));
             }
 
-            // /exampledata save <id>
             case "save" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " save <id>"));
@@ -538,7 +518,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 }, () -> player.sendMessage(MM.deserialize("<red>Profile not cached: <white>" + id)));
             }
 
-            // /exampledata delete <id>
             case "delete" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " delete <id>"));
@@ -549,7 +528,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(MM.deserialize("<red>Deleted profile <white>" + id));
             }
 
-            // /exampledata bulkload <id1> [id2 ...]
             case "bulkload" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " bulkload <id1> [id2 ...]"));
@@ -561,7 +539,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(MM.deserialize("<green>Bulk-loaded <white>" + loaded + "<green>/<white>" + ids.size()));
             }
 
-            // /exampledata info <id>
             case "info" -> {
                 if (args.length < 2) {
                     player.sendMessage(MM.deserialize("<red>Usage: /" + label + " info <id>"));
@@ -573,14 +550,23 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
                         player.sendMessage(MM.deserialize("<red>No profile found: <white>" + id));
                         return;
                     }
-                    ExampleSettings settings = data.getSettings() == null ? new ExampleSettings() : data.getSettings();
+
+                    ExampleSettings settings = data.getSettings();
+                    if (settings == null) {
+                        plugin.getLogger().info("Settings are null on profile " + id);
+                    }
+
                     player.sendMessage(MM.deserialize("<gold>Profile <white>" + id));
                     player.sendMessage(MM.deserialize("<gray>  display : <white>" + data.getDisplayName()));
                     player.sendMessage(MM.deserialize("<gray>  score   : <white>" + data.getScore()));
                     player.sendMessage(MM.deserialize("<gray>  points  : <white>" + data.getPoints()));
-                    player.sendMessage(MM.deserialize("<gray>  settings: <white>notify=" + settings.isNotifications()
-                            + " <gray>theme=<white>" + settings.getTheme()
-                            + " <gray>anchor=<white>" + settings.getX() + "," + settings.getY() + "," + settings.getZ()));
+                    if (settings == null) {
+                        player.sendMessage(MM.deserialize("<gray>  settings: <white>null"));
+                    } else {
+                        player.sendMessage(MM.deserialize("<gray>  settings: <white>notify=" + settings.isNotifications()
+                                + " <gray>theme=<white>" + settings.getTheme()
+                                + " <gray>anchor=<white>" + settings.getX() + "," + settings.getY() + "," + settings.getZ()));
+                    }
                     player.sendMessage(MM.deserialize("<gray>  tags    : <white>" + data.getTags()));
                     player.sendMessage(MM.deserialize("<gray>  homes   : <white>" + data.getHomes().size()));
                     player.sendMessage(MM.deserialize("<gray>  badges  : <white>" + data.getBadges()));
@@ -794,8 +780,6 @@ public class ExampleDataCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(MM.deserialize("<gray>  /" + label + " tag <add|remove|list> <id> [tag]"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " home <add|remove|list> <id> [...]"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " blob <badge|stat|note|raw> <id> ..."));
-        player.sendMessage(MM.deserialize("<gray>  /" + label + " top <cache|db|partial|dto|window|refresh> [limit]"));
-        player.sendMessage(MM.deserialize("<gray>  /" + label + " rank <id>"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " rankupdate <id>"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " rankbulk <id1> [id2 ...]"));
         player.sendMessage(MM.deserialize("<gray>  /" + label + " seed <count>"));

@@ -22,7 +22,7 @@ import java.util.UUID;
 public class HomeRecord {
 
     /** Composite key: {@code "<ownerUuid>:<name>"}. Used as primary key in both SQL and JSON. */
-    @PersistedId("key")
+    @PersistedId("home_key")
     private String key;
 
     @PersistedColumn(value = "owner_uuid", nullable = false, length = 36)
@@ -152,4 +152,3 @@ public class HomeRecord {
         this.updatedAt = Instant.now().getEpochSecond();
     }
 }
-

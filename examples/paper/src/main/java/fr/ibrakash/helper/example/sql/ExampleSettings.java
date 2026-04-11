@@ -14,18 +14,6 @@ public class ExampleSettings extends ExampleDisplayAnchor {
         super();
     }
 
-    public ExampleSettings(boolean notifications, String theme) {
-        super();
-        this.notifications = notifications;
-        this.theme = theme;
-    }
-
-    public ExampleSettings(boolean notifications, String theme, int x, int y, int z) {
-        super(x, y, z);
-        this.notifications = notifications;
-        this.theme = theme;
-    }
-
     public boolean isNotifications() {
         return notifications;
     }

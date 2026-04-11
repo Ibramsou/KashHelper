@@ -10,5 +10,12 @@ import java.lang.annotation.Target;
 public @interface PersistedEmbedded {
 
     String prefix() default "";
+
+    /**
+     * If true, the embedded object will be null after deserialization
+     * when ALL its columns contain default/empty values.
+     * Default is false (always instantiate the embedded object).
+     */
+    boolean nullable() default false;
 }
 

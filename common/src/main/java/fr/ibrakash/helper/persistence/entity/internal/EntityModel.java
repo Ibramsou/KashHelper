@@ -88,6 +88,14 @@ public final class EntityModel<T, ID> {
             boolean loadOnDeserialize
     ) {}
 
+    public record EmbeddedDef(
+            Field field,
+            VarHandle handle,
+            String prefix,
+            boolean nullable,
+            List<Column> columns
+    ) {}
+
     private final Class<T> entityType;
     private final Class<ID> idType;
     private final String namespace;
@@ -96,6 +104,7 @@ public final class EntityModel<T, ID> {
     private final List<IndexDef> indexes;
     private final List<RelationDef> relations;
     private final List<BlobDef> blobs;
+    private final List<EmbeddedDef> embeddeds;
     private final Constructor<T> entityConstructor;
     private final PersistedJsonMode jsonMode;
     private final List<RankDef> ranks;
@@ -108,6 +117,7 @@ public final class EntityModel<T, ID> {
                         List<IndexDef> indexes,
                         List<RelationDef> relations,
                         List<BlobDef> blobs,
+                        List<EmbeddedDef> embeddeds,
                         Constructor<T> entityConstructor,
                         PersistedJsonMode jsonMode,
                         List<RankDef> ranks) {
@@ -119,6 +129,7 @@ public final class EntityModel<T, ID> {
         this.indexes = indexes;
         this.relations = relations;
         this.blobs = blobs;
+        this.embeddeds = embeddeds;
         this.entityConstructor = entityConstructor;
         this.jsonMode = jsonMode;
         this.ranks = ranks;
@@ -130,6 +141,7 @@ public final class EntityModel<T, ID> {
         List<RelationDef> relations = new ArrayList<>();
         List<BlobDef> blobs = new ArrayList<>();
         List<RankDef> ranks = new ArrayList<>();
+        List<EmbeddedDef> embeddeds = new ArrayList<>();
 
         for (Field field : entityType.getDeclaredFields()) {
             field.setAccessible(true);
@@ -166,7 +178,10 @@ public final class EntityModel<T, ID> {
             }
 
             if (embedded != null) {
-                cols.addAll(parseEmbedded(field, embedded));
+                List<Column> embeddedCols = parseEmbedded(field, embedded);
+                cols.addAll(embeddedCols);
+                String prefix = embedded.prefix().isBlank() ? snake(field.getName()) + "_" : embedded.prefix();
+                embeddeds.add(new EmbeddedDef(field, varHandle(field), prefix, embedded.nullable(), embeddedCols));
                 continue;
             }
 
@@ -234,6 +249,7 @@ public final class EntityModel<T, ID> {
                 indexes,
                 relations,
                 blobs,
+                List.copyOf(embeddeds),
                 constructor(entityType),
                 jsonMode,
                 List.copyOf(resolvedRanks)
@@ -606,6 +622,10 @@ public final class EntityModel<T, ID> {
         return relations;
     }
 
+    public List<EmbeddedDef> embeddeds() {
+        return embeddeds;
+    }
+
     public PersistedJsonMode jsonMode() {
         return jsonMode;
     }
@@ -621,5 +641,124 @@ public final class EntityModel<T, ID> {
 
     public List<RankDef> ranksMarkedForDeserialize() {
         return this.ranks.stream().filter(RankDef::loadOnDeserialize).toList();
+    }
+
+    /**
+     * For each nullable embedded, if all its column values are "default",
+     * set the embedded field to null on the entity.
+     */
+    public void nullifyDefaultEmbeddeds(T entity) {
+        for (EmbeddedDef embedded : embeddeds) {
+            if (!embedded.nullable()) continue;
+
+            Object embeddedObj = embedded.handle().get(entity);
+            if (embeddedObj == null) continue;
+
+            boolean allDefault = true;
+            for (Column col : embedded.columns()) {
+                Object value = col.leafHandle().get(embeddedObj);
+                if (!isDefaultValue(value, col)) {
+                    allDefault = false;
+                    break;
+                }
+            }
+
+            if (allDefault) {
+                embedded.handle().set(entity, null);
+            }
+        }
+    }
+
+    private boolean isDefaultValue(Object value, Column column) {
+        if (value == null) {
+            return true;
+        }
+
+        Class<?> type = column.type();
+
+        // Check if there's an explicit default value in the annotation
+        String defaultLiteral = column.defaultValue();
+        if (defaultLiteral != null && !defaultLiteral.isEmpty()) {
+            Object parsedDefault = parseDefaultForComparison(defaultLiteral, type);
+            if (parsedDefault != null) {
+                return value.equals(parsedDefault);
+            }
+        }
+
+        // Check primitive defaults
+        if (type == int.class || type == Integer.class) {
+            return value.equals(0);
+        }
+        if (type == long.class || type == Long.class) {
+            return value.equals(0L);
+        }
+        if (type == short.class || type == Short.class) {
+            return value.equals((short) 0);
+        }
+        if (type == byte.class || type == Byte.class) {
+            return value.equals((byte) 0);
+        }
+        if (type == float.class || type == Float.class) {
+            return value.equals(0.0f);
+        }
+        if (type == double.class || type == Double.class) {
+            return value.equals(0.0d);
+        }
+        if (type == boolean.class || type == Boolean.class) {
+            return value.equals(false);
+        }
+        if (type == char.class || type == Character.class) {
+            return value.equals('\0');
+        }
+
+        // For objects (String, UUID, etc.), null is default, non-null is significant
+        return false;
+    }
+
+    private Object parseDefaultForComparison(String literal, Class<?> type) {
+        String raw = normalizeDefaultLiteralStatic(literal);
+        if (raw.isEmpty()) return null;
+
+        try {
+            if (type == String.class) {
+                return raw;
+            }
+            if (type == boolean.class || type == Boolean.class) {
+                return Boolean.parseBoolean(raw);
+            }
+            if (type == int.class || type == Integer.class) {
+                return Integer.parseInt(raw);
+            }
+            if (type == long.class || type == Long.class) {
+                return Long.parseLong(raw);
+            }
+            if (type == short.class || type == Short.class) {
+                return Short.parseShort(raw);
+            }
+            if (type == byte.class || type == Byte.class) {
+                return Byte.parseByte(raw);
+            }
+            if (type == float.class || type == Float.class) {
+                return Float.parseFloat(raw);
+            }
+            if (type == double.class || type == Double.class) {
+                return Double.parseDouble(raw);
+            }
+        } catch (RuntimeException ignored) {
+            // Can't parse, return null
+        }
+        return null;
+    }
+
+    private static String normalizeDefaultLiteralStatic(String literal) {
+        String trimmed = literal == null ? "" : literal.trim();
+        if (trimmed.length() >= 2) {
+            char first = trimmed.charAt(0);
+            char last = trimmed.charAt(trimmed.length() - 1);
+            if ((first == '\'' && last == '\'') || (first == '"' && last == '"')) {
+                return trimmed.substring(1, trimmed.length() - 1);
+            }
+        }
+        return trimmed;
     }
 }

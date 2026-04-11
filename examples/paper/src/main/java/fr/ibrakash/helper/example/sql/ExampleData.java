@@ -42,8 +42,8 @@ public class ExampleData {
     private String displayName;
 
     // Includes inherited columns from ExampleDisplayAnchor: settings_x/settings_y/settings_z.
-    @PersistedEmbedded(prefix = "settings_")
-    private ExampleSettings settings = new ExampleSettings();
+    @PersistedEmbedded(prefix = "settings_", nullable = true)
+    private ExampleSettings settings;
 
     // Primitive relation -> valueColumn required
     @PersistedRelation(table = "example_data_tags", joinColumn = "profile_id", valueColumn = "tag_value")
@@ -96,7 +96,7 @@ public class ExampleData {
         this.points = points;
         this.score = score;
         this.displayName = displayName;
-        this.settings = settings == null ? new ExampleSettings() : settings;
+        this.settings = settings;
         this.tags = tags == null ? new ArrayList<>() : new ArrayList<>(tags);
         this.homes = homes == null ? new ArrayList<>() : new ArrayList<>(homes);
         this.badges = badges == null ? new ArrayList<>() : new ArrayList<>(badges);
@@ -117,7 +117,6 @@ public class ExampleData {
         data.points = 0;
         data.score = 0L;
         data.displayName = (displayName == null || displayName.isBlank()) ? id : displayName;
-        data.settings = new ExampleSettings(true, "default", 0, 64, 0);
         return data;
     }
 
