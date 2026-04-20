@@ -10,7 +10,7 @@ ext {
             'kash-helper-paper',
             'kash-helper-jda'
     ] as Set
-} // Just an auth test
+}
 
 // Maven Central rejects SNAPSHOTs for release publishing: strip suffix when central tasks run.
 def configuredVersion = (findProperty('projectVersion') ?: '0.0.6').toString()
