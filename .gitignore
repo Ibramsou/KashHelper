@@ -46,3 +46,7 @@ bin/
 /examples/jda/run/
 /examples/hytale/run/
 local_directory/
+
+# Copilot agent context (local only)
+.github/copilot-instructions.md
+.github/agents/

@@ -9,9 +9,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Posts/refreshes the persistent guild-info embed in a channel.
- */
 public class GuildInfoSlashCommand implements JdaSlashCommand {
 
     private static final String TARGET_CHANNEL_OPTION = "channel";
@@ -33,7 +30,7 @@ public class GuildInfoSlashCommand implements JdaSlashCommand {
         );
 
         event.deferReply(true).queue(hook ->
-                embed.reloadMessage().whenComplete((ignored, error) -> {
+                embed.reload().whenComplete((ignored, error) -> {
                     if (error != null) {
                         hook.editOriginal("Impossible d'envoyer l'embed: " + error.getMessage()).queue();
                         return;

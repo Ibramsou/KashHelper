@@ -1,8 +1,5 @@
 package fr.ibrakash.helper.jda.embed.spec;
 
-/**
- * Spec for a single media gallery item.
- */
 public record MediaGalleryItemSpec(String url, String description, boolean spoiler) {
     public MediaGalleryItemSpec {
         url = url == null ? "" : url.trim();

@@ -18,9 +18,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * XML locale reader that resolves message paths like "messageId.componentId".
- */
 public class XmlLocaleReader extends SingleConfigurationReader<String> {
 
     public XmlLocaleReader(KashAddon<?> addon, String key) {

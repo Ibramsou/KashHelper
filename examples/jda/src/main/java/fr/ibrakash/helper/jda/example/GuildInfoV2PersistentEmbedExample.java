@@ -6,26 +6,39 @@ import fr.ibrakash.helper.jda.platform.KashJdaAddon;
 
 import java.util.Map;
 
-/**
- * Example persistent embed using Discord Components V2 (Container mode).
- * Demonstrates: TextDisplay, Section + Thumbnail accessory,
- * Section + Button accessory, MediaGallery, Separator, buttons, string-select.
- *
- * <p>V2 is automatically selected by the renderer because the locale entry
- * {@code "guild-info-v2"} contains a container with {@code <text-display>},
- * {@code <section>}, {@code <media-gallery>} and {@code <separator/>} tags.
- */
 public class GuildInfoV2PersistentEmbedExample extends PersistentChannelEmbed {
 
     private static final String PATH = "guild-info-v2";
 
     private String selectedPeriod = "7d";
 
-    public GuildInfoV2PersistentEmbedExample(KashJdaAddon<?, ?, ?> addon, long targetChannelId) {
-        super(addon, targetChannelId);
+    public GuildInfoV2PersistentEmbedExample() {
+        this(-1);
+    }
 
+    public GuildInfoV2PersistentEmbedExample(long targetChannelId) {
+        super(targetChannelId);
+        this.registerActions();
+    }
+
+    @Override
+    public KashJdaAddon<?, ?, ?> addon() {
+        return JdaExample.getInstance();
+    }
+
+    @Override
+    public String embedPath() {
+        return PATH;
+    }
+
+    @Override
+    public void onDeserialized() {
+        this.registerActions();
+    }
+
+    private void registerActions() {
         this.buttonAction("refresh_guild", event -> {
-            this.reloadMessage();
+            this.reload();
             event.reply("✅ V2 embed refreshed!").setEphemeral(true).queue();
         });
 
@@ -40,14 +53,9 @@ public class GuildInfoV2PersistentEmbedExample extends PersistentChannelEmbed {
         this.selectAction("guild_period", event -> {
             this.selectedPeriod = event.getValues().get(0);
             JdaBotLogger.info("V2 period changed to: %s", selectedPeriod);
-            this.reloadMessage();
+            this.reload();
             event.reply("📆 Period changed to **" + selectedPeriod + "**").setEphemeral(true).queue();
         });
-    }
-
-    @Override
-    public String embedPath() {
-        return PATH;
     }
 
     @Override

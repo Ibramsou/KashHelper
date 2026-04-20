@@ -12,23 +12,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Example persisted entity.
- *
- * <p>Works with both SQL and JSON backends automatically.
- * <ul>
- *   <li>SQL  → one row per player in a {@code example_data} table.</li>
- *   <li>JSON → stored as a map entry in {@code example_data.json}.</li>
- * </ul>
- *
- * <p>Add {@code transient} to any field you don't want persisted.
- */
 @PersistedEntity("example_data")
 @PersistedJson(mode = PersistedJsonMode.AUTO)
 @PersistedIndex(name = "idx_example_data_score", columns = {"score"})
 public class ExampleData {
 
-    /** Primary key — arbitrary string id (e.g. player name, UUID string, slug…). */
+    /** Primary key — arbitrary string id (e.g. player name, UUID string). */
     @PersistedId("id")
     private String id;
 
@@ -53,7 +42,7 @@ public class ExampleData {
     @PersistedRelation(table = "example_data_homes", joinColumn = "profile_id", prefix = "home_")
     private List<ExampleHomePoint> homes = new ArrayList<>();
 
-    // Blob examples -----------------------------------------------------------
+    // Blob examples
 
     @PersistedBlob(value = "blob_badges", blobTier = PersistedBlobTier.NORMAL, serializer = ExampleBadgeListBlobSerializer.class)
     private List<ExampleBadge> badges = new ArrayList<>();
@@ -70,7 +59,7 @@ public class ExampleData {
     @PersistedRank(sort_columns = {"score DESC", "points DESC"}, load_on_deserialize = true)
     private transient int leaderboardRank;
 
-    /** No-arg constructor required by the persistence layer and Jackson. */
+    // no-arg constructor required by persistence layer and Jackson
     public ExampleData() {
     }
 
@@ -105,12 +94,6 @@ public class ExampleData {
         this.rawSnapshot = rawSnapshot == null ? new byte[0] : rawSnapshot;
     }
 
-    /**
-     * Creates a blank profile with default values.
-     *
-     * @param id          arbitrary string identifier
-     * @param displayName optional display name; falls back to {@code id} if null or blank
-     */
     public static ExampleData of(String id, String displayName) {
         ExampleData data = new ExampleData();
         data.id = id;
@@ -120,9 +103,6 @@ public class ExampleData {
         return data;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters / setters
-    // -------------------------------------------------------------------------
 
     public String getId() {
         return id;

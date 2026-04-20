@@ -104,6 +104,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
 
         if (entity != null) {
             loadRelationsBatch(List.of(entity));
+            postLoad(entity);
         }
         return Optional.ofNullable(entity);
     }
@@ -124,6 +125,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
         });
 
         loadRelationsBatch(out);
+        postLoadAll(out);
         return out;
     }
 
@@ -144,6 +146,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
         });
 
         loadRelationsBatch(out);
+        postLoadAll(out);
         return out;
     }
 
@@ -167,6 +170,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
 
         if (columns == null) {
             loadRelationsBatch(out);
+            postLoadAll(out);
         }
         return out;
     }
@@ -227,6 +231,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
 
         if (columns == null) {
             loadRelationsBatch(ordered);
+            postLoadAll(ordered);
         }
 
         for (T entity : ordered) {
@@ -445,6 +450,18 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
         }
 
         return instance;
+    }
+
+    /** Apply post-load processing: nullable embedded nullification + lifecycle hook. */
+    private void postLoad(T entity) {
+        this.model.nullifyDefaultEmbeddeds(entity);
+        this.model.fireLifecycle(entity);
+    }
+
+    private void postLoadAll(List<T> entities) {
+        for (T entity : entities) {
+            postLoad(entity);
+        }
     }
 
     /** Merge fresh DB values into an existing instance (same object reference). */

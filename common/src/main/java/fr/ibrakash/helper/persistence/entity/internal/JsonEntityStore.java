@@ -294,4 +294,15 @@ public final class JsonEntityStore<T, ID> implements EntityStore<T, ID> {
             }
         }
     }
+
+    private void postLoad(T entity) {
+        this.model.nullifyDefaultEmbeddeds(entity);
+        this.model.fireLifecycle(entity);
+    }
+
+    private void postLoadAll(List<T> entities) {
+        for (T entity : entities) {
+            postLoad(entity);
+        }
+    }
 }

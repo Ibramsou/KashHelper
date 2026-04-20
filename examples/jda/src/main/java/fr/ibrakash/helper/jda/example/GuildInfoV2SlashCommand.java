@@ -9,9 +9,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Posts/refreshes the V2 guild-info embed (Components V2 Container).
- */
 public class GuildInfoV2SlashCommand implements JdaSlashCommand {
 
     private static final String TARGET_CHANNEL_OPTION = "channel";
@@ -29,11 +26,11 @@ public class GuildInfoV2SlashCommand implements JdaSlashCommand {
         long channelId = resolveChannelId(event);
         GuildInfoV2PersistentEmbedExample embed = this.embedsByChannelId.computeIfAbsent(
                 channelId,
-                id -> new GuildInfoV2PersistentEmbedExample(this.addon, id)
+                GuildInfoV2PersistentEmbedExample::new
         );
 
         event.deferReply(true).queue(hook ->
-                embed.reloadMessage().whenComplete((ignored, error) -> {
+                embed.reload().whenComplete((ignored, error) -> {
                     if (error != null) {
                         hook.editOriginal("❌ Erreur: " + error.getMessage()).queue();
                         return;

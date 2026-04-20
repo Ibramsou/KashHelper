@@ -7,9 +7,6 @@ import fr.ibrakash.helper.persistence.adapter.DatabaseRepository;
 import fr.ibrakash.helper.persistence.mongo.MongoPersistenceEngine;
 import org.bson.Document;
 
-/**
- * Common Mongo operation mixin for adapters.
- */
 public interface MongoAdapterOperations {
 
     DatabaseRepository repository();

@@ -6,6 +6,8 @@ import fr.ibrakash.helper.persistence.PersistenceSession;
 import fr.ibrakash.helper.persistence.PersistenceType;
 import fr.ibrakash.helper.persistence.adapter.json.JsonAdapter;
 import fr.ibrakash.helper.persistence.adapter.sql.SqlAdapter;
+import fr.ibrakash.helper.persistence.entity.PersistedColumn;
+import fr.ibrakash.helper.persistence.entity.PersistedDefaultId;
 import fr.ibrakash.helper.persistence.entity.PersistedId;
 import fr.ibrakash.helper.persistence.entity.internal.EntityModel;
 import fr.ibrakash.helper.persistence.query.SortClause;
@@ -30,34 +32,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Base class for all data repositories.
- *
- * <p>A {@code DatabaseRepository} owns the in-memory caches, the persistence session,
- * and the selected {@link DatabaseAdapter}. Repositories may register custom adapters
- * for one or more backend types, but they can also rely entirely on the built-in
- * default adapters.
- *
- * <h2>Lifecycle</h2>
- * <ol>
- *   <li>Subclass constructor calls {@code super(addon, config)}</li>
- *   <li>Optionally register custom adapters via {@link #registerAdapter}</li>
- *   <li>Optionally call {@link #activateAdapter()} for eager warm-up</li>
- *   <li>Otherwise, the adapter is activated lazily on first persistence use</li>
- *   <li>On disable: call {@link #saveAll()} then {@link #close()}</li>
- * </ol>
- *
- * <h2>R/W helpers</h2>
- * <ul>
- *   <li>{@link #deserializeData(Class, Object)} - load one entity by id</li>
- *   <li>{@link #serializeData(Object, List, List)} - upsert one entity</li>
- *   <li>{@link #serializeBulkData(List, List, List)} - batch upsert</li>
- *   <li>{@link #deserializeBulkData(Class, List)} - batch load by ids</li>
- * </ul>
- *
- * <p>All entity stores are cached internally so {@link #getStore(Class)} always
- * returns the same instance.
- */
 public abstract class DatabaseRepository extends PersistenceSession {
 
     private final Map<DatabaseAdapterType, Function<DatabaseRepository, DatabaseAdapter<DatabaseRepository>>> adapterFactories = new EnumMap<>(DatabaseAdapterType.class);
@@ -69,13 +43,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
     private final Map<Class<?>, EntityModel<?, ?>> modelCache = new ConcurrentHashMap<>();
     private final Map<Class<?>, Map<String, Field>> sortFieldCache = new ConcurrentHashMap<>();
 
-    /**
-     * Creates the persistence session and prepares optional adapter registration.
-     *
-     * <p>Custom adapters can still be registered from the subclass constructor, but
-     * repositories are no longer required to register or activate one manually:
-     * the default backend adapter is resolved lazily on first persistence use.
-     */
+    
     @SuppressWarnings("unchecked")
     protected DatabaseRepository(KashAddon<?> addon, ConfigPersistence config) {
         super(addon, config);
@@ -85,26 +53,13 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // Adapter registration
     // -------------------------------------------------------------------------
 
-    /**
-     * Registers an adapter factory for the given backend type.
-     * Call this from the subclass constructor before {@link #activateAdapter()}.
-     *
-     * @param type    backend type
-     * @param factory a function that receives {@code this} and constructs the adapter
-     * @param <R>     concrete repository type
-     */
+    
     @SuppressWarnings("unchecked")
     public <R extends DatabaseRepository> void registerAdapter(DatabaseAdapterType type, Function<R, DatabaseAdapter<R>> factory) {
         this.adapterFactories.put(type, (Function<DatabaseRepository, DatabaseAdapter<DatabaseRepository>>) (Function<?, ?>) factory);
     }
 
-    /**
-     * Selects and initialises the adapter matching the active backend.
-     *
-     * <p>If no custom adapter was registered for the current backend, a built-in
-     * default adapter is created automatically. Calling this method is now optional:
-     * it only forces early activation (useful for cache warm-up in custom adapters).
-     */
+    
     protected final void activateAdapter() {
         ensureAdapterActivated();
     }
@@ -140,10 +95,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // Entity store access
     // -------------------------------------------------------------------------
 
-    /**
-     * Returns (or creates) the {@link EntityStore} for the given entity class.
-     * The id type is inferred from {@link PersistedId}.
-     */
+    
     @SuppressWarnings("unchecked")
     public <T, ID> EntityStore<T, ID> getStore(Class<T> entityClass) {
         ensureAdapterActivated();
@@ -153,9 +105,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
         });
     }
 
-    /**
-     * Returns (or creates) the {@link EntityStore} with an explicit id type.
-     */
+    
     @SuppressWarnings("unchecked")
     public <T, ID> EntityStore<T, ID> getStore(Class<T> entityClass, Class<ID> idType) {
         ensureAdapterActivated();
@@ -174,52 +124,20 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // R/W helpers — single
     // -------------------------------------------------------------------------
 
-    /**
-     * Loads one entity from the backend by id.
-     *
-     * <pre>{@code
-     * ExampleData data = this.deserializeData(ExampleData.class, uuid);
-     * }</pre>
-     *
-     * @param entityClass entity type
-     * @param id          primary key value
-     * @param <T>         entity type
-     * @param <ID>        id type
-     * @return the entity, or {@code null} if not found
-     */
+    
     @SuppressWarnings("unchecked")
     public <T, ID> T deserializeData(Class<T> entityClass, ID id) {
         EntityStore<T, ID> store = getStore(entityClass);
         return store.find(id).orElse(null);
     }
 
-    /**
-     * Loads one entity as an {@link Optional}.
-     */
+    
     public <T, ID> Optional<T> deserializeOptional(Class<T> entityClass, ID id) {
         EntityStore<T, ID> store = getStore(entityClass);
         return store.find(id);
     }
 
-    /**
-     * Upserts one entity to the backend.
-     *
-     * <p>The {@code keys} and {@code values} parameters exist for documentation /
-     * explicitness purposes in the calling code — the actual persistence is driven
-     * by the annotated entity fields via {@link EntityStore#save(Object)}.
-     *
-     * <pre>{@code
-     * this.serializeData(data,
-     *     List.of(data.getUUID()),
-     *     List.of(data.getPoints(), data.getScore())
-     * );
-     * }</pre>
-     *
-     * @param entity the entity to save
-     * @param keys   identifying values (e.g. primary key) — informational only
-     * @param values non-key column values — informational only
-     * @param <T>    entity type
-     */
+    
     @SuppressWarnings("unchecked")
     public <T> void serializeData(T entity, List<?> keys, List<?> values) {
         EntityStore<T, ?> store = (EntityStore<T, ?>) getStore(entity.getClass());
@@ -230,24 +148,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // R/W helpers — bulk
     // -------------------------------------------------------------------------
 
-    /**
-     * Batch-upserts a list of entities.
-     *
-     * <p>{@code keyExtractors} and {@code valueExtractors} are provided for
-     * explicitness in the caller and are not used for actual persistence.
-     *
-     * <pre>{@code
-     * this.serializeBulkData(dataList,
-     *     List.of(ExampleData::getUUID),
-     *     List.of(ExampleData::getPoints, ExampleData::getScore)
-     * );
-     * }</pre>
-     *
-     * @param entities       list of entities to save
-     * @param keyExtractors  functions that extract key fields — informational
-     * @param valueExtractors functions that extract value fields — informational
-     * @param <T>            entity type
-     */
+    
     @SuppressWarnings("unchecked")
     public <T> void serializeBulkData(List<T> entities,
                                       List<Function<T, ?>> keyExtractors,
@@ -258,28 +159,13 @@ public abstract class DatabaseRepository extends PersistenceSession {
         store.saveAll(entities);
     }
 
-    /**
-     * Batch-loads entities by a list of ids.
-     *
-     * <pre>{@code
-     * List<ExampleData> loaded = this.deserializeBulkData(ExampleData.class, uuids);
-     * }</pre>
-     *
-     * @param entityClass entity type
-     * @param ids         list of primary key values to fetch
-     * @param <T>         entity type
-     * @param <ID>        id type
-     * @return list of found entities (missing ids are silently skipped)
-     */
+    
     public <T, ID> List<T> deserializeBulkData(Class<T> entityClass, List<ID> ids) {
         EntityStore<T, ID> store = getStore(entityClass);
         return store.findAllByIds(ids);
     }
 
-    /**
-     * Batch-loads entities by ids — overload matching the {@code ExampleRepository}
-     * signature where ids are wrapped inside a single-element outer list.
-     */
+    
     public <T, ID> List<T> deserializeBulkData(Class<T> entityClass,
                                                 List<List<ID>> idLists,
                                                 List<Function<T, ?>> valueExtractors) {
@@ -386,7 +272,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
             return this;
         }
 
-        /** Start at row {@code offset} (0-based). */
+        
         public SortBuilder<T> offset(int offset) {
             this.offset = Math.max(0, offset);
             return this;
@@ -397,44 +283,33 @@ public abstract class DatabaseRepository extends PersistenceSession {
             return this;
         }
 
-        /** Convenience: page from start index with page size. */
+        
         public SortBuilder<T> window(int offset, int limit) {
             this.offset = Math.max(0, offset);
             this.limit = limit;
             return this;
         }
 
-        /**
-         * Restrict SQL SELECT to these columns only (id always included).
-         * Ignored when memoryCache is provided.
-         */
+        
         public SortBuilder<T> loadColumns(String... fields) {
             this.columns.addAll(List.of(fields));
             return this;
         }
 
-        /** Full column load — explicit no-op, here for readability. */
+        
         public SortBuilder<T> loadFullColumns() {
             this.columns.clear();
             return this;
         }
 
-        /** Sort a pre-loaded Collection without hitting the backend. */
+        
         public SortBuilder<T> memoryCache(Collection<T> cacheValues) {
             this.memoryCacheCollection = cacheValues;
             this.memoryCacheMap = null;
             return this;
         }
 
-        /**
-         * Sort using a Map cache.
-         *
-         * @param cacheMap       the live map (String/ID key → entity)
-         * @param reuseInstances if {@code true}, merge fresh DB values into existing
-         *                       instances (keeps same object references); if
-         *                       {@code false}, replace entries with new instances.
-         *                       Ignored when no backend fetch is triggered.
-         */
+        
         public <K> SortBuilder<T> memoryCache(Map<K, T> cacheMap, boolean reuseInstances) {
             this.memoryCacheMap = cacheMap;
             this.memoryCacheCollection = null;
@@ -442,7 +317,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
             return this;
         }
 
-        /** Convenience — {@code memoryCache(map, false)}. */
+        
         public <K> SortBuilder<T> memoryCache(Map<K, T> cacheMap) {
             return memoryCache(cacheMap, false);
         }
@@ -814,10 +689,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // Async helpers
     // -------------------------------------------------------------------------
 
-    /**
-     * Wraps a blocking call in a {@link CompletableFuture} running on the
-     * SQL thread-pool (if SQL) or the common fork-join pool otherwise.
-     */
+    
     public <T> CompletableFuture<T> async(java.util.concurrent.Callable<T> task) {
         CompletableFuture<T> future = new CompletableFuture<>();
         Runnable runner = () -> {
@@ -836,9 +708,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
         return future;
     }
 
-    /**
-     * Runs a fire-and-forget task asynchronously.
-     */
+    
     public CompletableFuture<Void> asyncRun(Runnable task) {
         return async(() -> {
             task.run();
@@ -850,23 +720,13 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // Cache utilities
     // -------------------------------------------------------------------------
 
-    /**
-     * Populates {@code target} with every record of {@code entityClass} from the backend.
-     * Useful inside adapter constructors or {@code onInit}.
-     *
-     * <pre>{@code
-     * // inside SqlAdapter constructor
-     * adapter.loadEntireData(repository.getProfileCache(), ProfileRecord.class);
-     * }</pre>
-     */
+    
     public <K, V> void loadEntireData(Map<K, V> target, Class<V> entityClass) {
         EntityStore<V, K> store = getStore(entityClass);
         store.findAll().forEach(entity -> target.put(store.idOf(entity), entity));
     }
 
-    /**
-     * Flushes every entry in {@code source} back to the backend.
-     */
+    
     public <V> void flushEntireData(Map<?, V> source, Class<V> entityClass) {
         EntityStore<V, ?> store = getStore(entityClass);
         store.saveAll(source.values());
@@ -876,11 +736,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
     // Lifecycle
     // -------------------------------------------------------------------------
 
-    /**
-     * Persists all in-memory caches to the backend.
-     * Called automatically via {@link #close()}; also safe to call manually for
-     * periodic saves.
-     */
+    
     public abstract void saveAll();
 
     @Override
@@ -889,7 +745,7 @@ public abstract class DatabaseRepository extends PersistenceSession {
         super.close();
     }
 
-    /** Compatibility shim for older call-sites. */
+    
     @Deprecated(forRemoval = false)
     public PersistenceSession getSession() {
         return this;
@@ -982,6 +838,28 @@ public abstract class DatabaseRepository extends PersistenceSession {
         for (Field f : entityType.getDeclaredFields()) {
             if (f.getAnnotation(PersistedId.class) != null) return f.getType();
         }
+
+        PersistedDefaultId persistedDefaultId = entityType.getAnnotation(PersistedDefaultId.class);
+
+        if (persistedDefaultId != null) {
+            String idColumnName = persistedDefaultId.value() == null ? "" : persistedDefaultId.value().trim();
+            if (idColumnName.isBlank()) {
+                throw new IllegalArgumentException("@PersistedDefaultId value must not be blank in " + entityType.getName());
+            }
+
+            for (Field f : entityType.getDeclaredFields()) {
+                PersistedColumn persistedColumn = f.getAnnotation(PersistedColumn.class);
+                String resolvedName = persistedColumn == null || persistedColumn.value().isBlank()
+                        ? toSnake(f.getName())
+                        : persistedColumn.value();
+                if (resolvedName.equalsIgnoreCase(idColumnName)) {
+                    return f.getType();
+                }
+            }
+
+            throw new IllegalArgumentException("@PersistedDefaultId column '" + idColumnName + "' not found in " + entityType.getName());
+        }
+
         throw new IllegalArgumentException("No @PersistedId field found in " + entityType.getName());
     }
 

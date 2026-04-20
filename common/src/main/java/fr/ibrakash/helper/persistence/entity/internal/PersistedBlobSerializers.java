@@ -65,6 +65,11 @@ final class PersistedBlobSerializers {
             return new EnumSerializer((Class<? extends Enum>) fieldType);
         }
 
+        // Fallback: reflective serializer for POJOs with no-arg constructor
+        if (ReflectiveBlobSerializer.canHandle(fieldType)) {
+            return (PersistedBlobSerializer<Object>) new ReflectiveBlobSerializer<>(fieldType);
+        }
+
         return null;
     }
 

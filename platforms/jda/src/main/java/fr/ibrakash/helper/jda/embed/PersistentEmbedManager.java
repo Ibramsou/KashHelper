@@ -6,7 +6,6 @@ import fr.ibrakash.helper.jda.embed.spec.PersistentEmbedSpec;
 import fr.ibrakash.helper.jda.text.JdaTextReplacer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
@@ -18,18 +17,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
-/**
- * Runtime manager for config-driven persistent embeds.
- */
 public class PersistentEmbedManager extends ListenerAdapter {
 
     private final JDA jda;
     private final PersistentEmbedParser parser;
     private final PersistentEmbedRenderer renderer;
-    private final ConcurrentHashMap<String, Consumer<ButtonInteractionEvent>> buttonHandlers;
-    private final ConcurrentHashMap<String, Consumer<StringSelectInteractionEvent>> selectHandlers;
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<ButtonHandlerRegistration>> buttonHandlers;
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<SelectHandlerRegistration>> selectHandlers;
 
     public PersistentEmbedManager(JDA jda) {
         this(jda, new PersistentEmbedParser(), new PersistentEmbedRenderer());
@@ -48,14 +45,32 @@ public class PersistentEmbedManager extends ListenerAdapter {
         Objects.requireNonNull(embed, "embed");
         Objects.requireNonNull(buttonId, "buttonId");
         Objects.requireNonNull(action, "action");
-        this.buttonHandlers.put(this.customId(embed, buttonId), action);
+
+        String customId = this.customId(embed, buttonId);
+        this.buttonHandlers.compute(customId, (ignored, registrations) -> {
+            CopyOnWriteArrayList<ButtonHandlerRegistration> list = registrations == null
+                    ? new CopyOnWriteArrayList<>()
+                    : registrations;
+            list.removeIf(registration -> registration.embed() == embed);
+            list.add(new ButtonHandlerRegistration(embed, action));
+            return list;
+        });
     }
 
     public void registerSelectAction(PersistentEmbed embed, String selectId, Consumer<StringSelectInteractionEvent> action) {
         Objects.requireNonNull(embed, "embed");
         Objects.requireNonNull(selectId, "selectId");
         Objects.requireNonNull(action, "action");
-        this.selectHandlers.put(this.customId(embed, selectId), action);
+
+        String customId = this.customId(embed, selectId);
+        this.selectHandlers.compute(customId, (ignored, registrations) -> {
+            CopyOnWriteArrayList<SelectHandlerRegistration> list = registrations == null
+                    ? new CopyOnWriteArrayList<>()
+                    : registrations;
+            list.removeIf(registration -> registration.embed() == embed);
+            list.add(new SelectHandlerRegistration(embed, action));
+            return list;
+        });
     }
 
     public CompletableFuture<Message> reload(PersistentEmbed embed) {
@@ -75,25 +90,16 @@ public class PersistentEmbedManager extends ListenerAdapter {
 
         try {
             lines = embed.localeConfig().lines(embed.embedPath());
-            // Build the replacer from placeholders (mirrors Paper menus approach)
             JdaTextReplacer replacer = buildReplacer(embed);
             spec = this.parser.parse(lines, replacer);
-            // Pass empty placeholders since they're already baked into the spec via replacer
             rendered = this.renderer.render(spec, embed.embedPath(), null);
         } catch (Exception exception) {
             return CompletableFuture.failedFuture(exception);
         }
 
-        if (embed instanceof PersistentChannelEmbed channelEmbed) {
-            return this.reloadChannelEmbed(channelEmbed, rendered);
-        }
-
-        if (embed instanceof PersistentPrivateEmbed privateEmbed) {
-            return this.reloadPrivateEmbed(privateEmbed, rendered, dmFallbackReplyEvent);
-        }
-
-        return CompletableFuture.failedFuture(
-                new IllegalStateException("Unsupported PersistentEmbed type: " + embed.getClass().getName()));
+        return embed.resolveChannel()
+                .thenCompose(channel -> this.sendOrEdit(embed, channel, rendered))
+                .exceptionallyCompose(error -> embed.handleReloadFailure(dmFallbackReplyEvent, error));
     }
 
     public CompletableFuture<Void> destroy(PersistentEmbed embed) {
@@ -102,40 +108,10 @@ public class PersistentEmbedManager extends ListenerAdapter {
             return CompletableFuture.completedFuture(null);
         }
 
-        if (embed instanceof PersistentChannelEmbed channelEmbed) {
-            return this.resolveChannel(channelEmbed)
-                    .thenCompose(channel -> channel.deleteMessageById(embed.messageId()).submit())
-                    .exceptionally(ignored -> null)
-                    .thenApply(ignored -> null);
-        }
-
-        if (embed instanceof PersistentPrivateEmbed privateEmbed) {
-            return this.resolvePrivateChannel(privateEmbed)
-                    .thenCompose(channel -> channel.deleteMessageById(embed.messageId()).submit())
-                    .exceptionally(ignored -> null)
-                    .thenApply(ignored -> null);
-        }
-
-        return CompletableFuture.failedFuture(
-                new IllegalStateException("Unsupported PersistentEmbed type: " + embed.getClass().getName()));
-    }
-
-    private CompletableFuture<Message> reloadChannelEmbed(
-            PersistentChannelEmbed embed,
-            PersistentEmbedRenderer.RenderedPersistentEmbed rendered
-    ) {
-        return this.resolveChannel(embed)
-                .thenCompose(channel -> this.sendOrEdit(embed, channel, rendered));
-    }
-
-    private CompletableFuture<Message> reloadPrivateEmbed(
-            PersistentPrivateEmbed embed,
-            PersistentEmbedRenderer.RenderedPersistentEmbed rendered,
-            IReplyCallback dmFallbackReplyEvent
-    ) {
-        return this.resolvePrivateChannel(embed)
-                .thenCompose(channel -> this.sendOrEdit(embed, channel, rendered))
-                .exceptionallyCompose(error -> this.handlePrivateSendFailure(embed, dmFallbackReplyEvent, error));
+        return embed.resolveChannel()
+                .thenCompose(channel -> channel.deleteMessageById(embed.messageId()).submit())
+                .exceptionally(ignored -> null)
+                .thenApply(ignored -> null);
     }
 
     private CompletableFuture<Message> sendOrEdit(
@@ -152,43 +128,6 @@ public class PersistentEmbedManager extends ListenerAdapter {
                 .exceptionallyCompose(ignored -> channel.sendMessage(this.renderer.createData(rendered)).submit());
     }
 
-    private CompletableFuture<Message> handlePrivateSendFailure(
-            PersistentPrivateEmbed embed,
-            IReplyCallback dmFallbackReplyEvent,
-            Throwable error
-    ) {
-        if (dmFallbackReplyEvent != null) {
-            // Use the system locale for the DM-disabled message so users don't
-            // have to configure it in their embed locale.
-            embed.systemLocale().reply(embed.dmDisabledMessagePath(), dmFallbackReplyEvent, embed.dmDisabledMessageReplacers());
-            return CompletableFuture.completedFuture(null);
-        }
-        return CompletableFuture.failedFuture(error);
-    }
-
-    private CompletableFuture<MessageChannel> resolveChannel(PersistentChannelEmbed embed) {
-        long channelId = embed.channelId();
-        if (channelId <= 0L) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("PersistentChannelEmbed requires a valid channel id"));
-        }
-        MessageChannel channel = this.jda.getChannelById(MessageChannel.class, channelId);
-        if (channel != null) return CompletableFuture.completedFuture(channel);
-        return CompletableFuture.failedFuture(new IllegalStateException("Channel not found: " + channelId));
-    }
-
-    private CompletableFuture<PrivateChannel> resolvePrivateChannel(PersistentPrivateEmbed embed) {
-        long userId = embed.userId();
-        if (userId <= 0L) {
-            return CompletableFuture.failedFuture(
-                    new IllegalStateException("PersistentPrivateEmbed requires a valid user id"));
-        }
-        return this.jda.retrieveUserById(userId)
-                .submit()
-                .thenCompose(user -> user.openPrivateChannel().submit());
-    }
-
-    /** Builds a JdaTextReplacer from the embed's placeholders map. */
     private JdaTextReplacer buildReplacer(PersistentEmbed embed) {
         var placeholders = embed.placeholders();
         if (placeholders == null || placeholders.isEmpty()) return null;
@@ -203,14 +142,40 @@ public class PersistentEmbedManager extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
-        Consumer<ButtonInteractionEvent> handler = this.buttonHandlers.get(event.getComponentId());
-        if (handler != null) handler.accept(event);
+        CopyOnWriteArrayList<ButtonHandlerRegistration> registrations = this.buttonHandlers.get(event.getComponentId());
+        if (registrations == null || registrations.isEmpty()) {
+            return;
+        }
+
+        long messageId = event.getMessageIdLong();
+        for (ButtonHandlerRegistration registration : registrations) {
+            if (registration.embed().messageId() == messageId) {
+                registration.action().accept(event);
+                return;
+            }
+        }
     }
 
     @Override
     public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
-        Consumer<StringSelectInteractionEvent> handler = this.selectHandlers.get(event.getComponentId());
-        if (handler != null) handler.accept(event);
+        CopyOnWriteArrayList<SelectHandlerRegistration> registrations = this.selectHandlers.get(event.getComponentId());
+        if (registrations == null || registrations.isEmpty()) {
+            return;
+        }
+
+        long messageId = event.getMessageIdLong();
+        for (SelectHandlerRegistration registration : registrations) {
+            if (registration.embed().messageId() == messageId) {
+                registration.action().accept(event);
+                return;
+            }
+        }
+    }
+
+    private record ButtonHandlerRegistration(PersistentEmbed embed, Consumer<ButtonInteractionEvent> action) {
+    }
+
+    private record SelectHandlerRegistration(PersistentEmbed embed, Consumer<StringSelectInteractionEvent> action) {
     }
 }
 

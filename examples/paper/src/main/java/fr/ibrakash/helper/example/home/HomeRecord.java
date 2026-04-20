@@ -11,17 +11,11 @@ import org.bukkit.Location;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Persisted home entry.
- *
- * <p>The {@link PersistedId} is the composite key {@code "ownerUuid:name"}.
- * The {@code owner_uuid} column has a dedicated index for fast per-player queries.
- */
 @PersistedEntity("homes")
 @PersistedIndex(name = "idx_homes_owner", columns = {"owner_uuid"})
 public class HomeRecord {
 
-    /** Composite key: {@code "<ownerUuid>:<name>"}. Used as primary key in both SQL and JSON. */
+    
     @PersistedId("home_key")
     private String key;
 
@@ -55,7 +49,7 @@ public class HomeRecord {
     @PersistedColumn(value = "updated_at", nullable = false)
     private long updatedAt;
 
-    /** No-arg constructor required by the persistence layer. */
+    
     public HomeRecord() {
     }
 

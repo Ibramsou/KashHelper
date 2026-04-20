@@ -10,9 +10,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Sends/refreshes the guild-info DM embed.
- */
 public class GuildInfoDmSlashCommand implements JdaSlashCommand {
 
     private static final String TARGET_USER_OPTION = "user";
@@ -32,7 +29,7 @@ public class GuildInfoDmSlashCommand implements JdaSlashCommand {
 
         GuildInfoPrivatePersistentEmbedExample embed = this.embedsByUserId.computeIfAbsent(
                 userId,
-                id -> new GuildInfoPrivatePersistentEmbedExample(this.addon, id)
+                GuildInfoPrivatePersistentEmbedExample::new
         );
 
         embed.reloadMessageWithStatus(event).whenComplete((dmSent, error) -> {

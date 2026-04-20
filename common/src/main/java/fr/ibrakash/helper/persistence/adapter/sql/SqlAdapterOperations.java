@@ -14,11 +14,6 @@ import java.sql.Statement;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-/**
- * Common SQL operation mixin for adapters.
- *
- * <p>Implementors only need to provide {@link #repository()}.
- */
 public interface SqlAdapterOperations {
 
     DatabaseRepository repository();

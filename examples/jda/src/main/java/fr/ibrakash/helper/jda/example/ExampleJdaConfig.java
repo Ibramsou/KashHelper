@@ -1,20 +1,14 @@
 package fr.ibrakash.helper.jda.example;
 
+import fr.ibrakash.helper.configuration.objects.database.ConfigPersistence;
 import fr.ibrakash.helper.jda.platform.KashJdaConfig;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
-/**
- * Configuration for the JDA example bot.
- *
- * <p>The bot token is inherited from {@link KashJdaConfig} and serialized
- * as {@code token} in {@code config.yml}.  Add your own fields below.
- */
 @ConfigSerializable
 public class ExampleJdaConfig extends KashJdaConfig {
 
-    /**
-     * Convenience accessor – returns the config loaded by {@link JdaExample}.
-     */
+    private ConfigPersistence database = new ConfigPersistence();
+
     public static ExampleJdaConfig get() {
         return JdaExample.getInstance().getConfig();
     }
@@ -27,5 +21,9 @@ public class ExampleJdaConfig extends KashJdaConfig {
     @Override
     public String defaultDevGuildId() {
         return "1479442680470835222";
+    }
+
+    public ConfigPersistence getDatabase() {
+        return database;
     }
 }

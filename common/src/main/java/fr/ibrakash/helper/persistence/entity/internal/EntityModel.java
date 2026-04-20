@@ -8,6 +8,7 @@ import fr.ibrakash.helper.persistence.entity.PersistedBlobTier;
 import fr.ibrakash.helper.persistence.entity.PersistedColumn;
 import fr.ibrakash.helper.persistence.entity.PersistedEmbedded;
 import fr.ibrakash.helper.persistence.entity.PersistedEntity;
+import fr.ibrakash.helper.persistence.entity.PersistedDefaultId;
 import fr.ibrakash.helper.persistence.entity.PersistedId;
 import fr.ibrakash.helper.persistence.entity.PersistedIndex;
 import fr.ibrakash.helper.persistence.entity.PersistedIndexes;
@@ -15,6 +16,7 @@ import fr.ibrakash.helper.persistence.entity.PersistedRelation;
 import fr.ibrakash.helper.persistence.entity.PersistedJson;
 import fr.ibrakash.helper.persistence.entity.PersistedJsonMode;
 import fr.ibrakash.helper.persistence.entity.PersistedRank;
+import fr.ibrakash.helper.persistence.entity.PersistenceLifecycle;
 import fr.ibrakash.helper.persistence.query.SortClause;
 import fr.ibrakash.helper.persistence.query.SortDirection;
 
@@ -137,6 +139,7 @@ public final class EntityModel<T, ID> {
 
     public static <T, ID> EntityModel<T, ID> from(Class<T> entityType, Class<ID> idType) {
         Field idField = null;
+        String defaultJoinColumn = null;
         List<Column> cols = new ArrayList<>();
         List<RelationDef> relations = new ArrayList<>();
         List<BlobDef> blobs = new ArrayList<>();
@@ -159,6 +162,7 @@ public final class EntityModel<T, ID> {
                 }
                 String name = id.value().isBlank() ? snake(field.getName()) : id.value();
                 idField = field;
+                defaultJoinColumn = snake(field.getName());
                 cols.add(new Column(null, field, name, field.getType(), false, "", 36, true,
                         null, varHandle(field), null));
                 continue;
@@ -205,14 +209,58 @@ public final class EntityModel<T, ID> {
         }
 
         if (idField == null) {
-            throw new IllegalArgumentException("Missing @PersistedId field in " + entityType.getName());
+            PersistedDefaultId persistedDefaultId = entityType.getAnnotation(PersistedDefaultId.class);
+
+            if (persistedDefaultId == null) {
+                throw new IllegalArgumentException("Missing @PersistedId field in " + entityType.getName());
+            }
+
+            String idColumnName = persistedDefaultId.value() == null ? "" : persistedDefaultId.value().trim();
+            if (idColumnName.isBlank()) {
+                throw new IllegalArgumentException("@PersistedDefaultId value must not be blank in " + entityType.getName());
+            }
+
+            Column matchedIdColumn = null;
+            for (Column column : cols) {
+                if (column.name().equalsIgnoreCase(idColumnName)) {
+                    matchedIdColumn = column;
+                    break;
+                }
+            }
+
+            if (matchedIdColumn == null) {
+                throw new IllegalArgumentException("@PersistedDefaultId column '" + idColumnName + "' not found in " + entityType.getName());
+            }
+
+            List<Column> promoted = new ArrayList<>(cols.size());
+            for (Column column : cols) {
+                if (column == matchedIdColumn) {
+                    promoted.add(new Column(
+                            column.rootField(),
+                            column.leafField(),
+                            column.name(),
+                            column.type(),
+                            false,
+                            column.defaultValue(),
+                            column.length(),
+                            true,
+                            column.rootHandle(),
+                            column.leafHandle(),
+                            column.rootConstructor()
+                    ));
+                    continue;
+                }
+                promoted.add(column);
+            }
+            cols = promoted;
+            defaultJoinColumn = idColumnName;
         }
 
         for (Field field : entityType.getDeclaredFields()) {
             PersistedRelation relation = field.getAnnotation(PersistedRelation.class);
             if (relation == null) continue;
             field.setAccessible(true);
-            relations.add(parseRelation(field, relation, idField));
+            relations.add(parseRelation(field, relation, defaultJoinColumn));
         }
 
         Column idCol = cols.stream().filter(Column::id).findFirst().orElseThrow();
@@ -297,7 +345,7 @@ public final class EntityModel<T, ID> {
         return fields;
     }
 
-    private static RelationDef parseRelation(Field field, PersistedRelation relation, Field idField) {
+    private static RelationDef parseRelation(Field field, PersistedRelation relation, String defaultJoinColumn) {
         if (!(field.getGenericType() instanceof ParameterizedType pt)) {
             throw new IllegalArgumentException("@PersistedRelation field must be parameterized: " + field.getName());
         }
@@ -313,7 +361,7 @@ public final class EntityModel<T, ID> {
         }
 
         String joinColumn = relation.joinColumn().isBlank()
-                ? snake(idField.getName())
+                ? defaultJoinColumn
                 : relation.joinColumn();
         String valueColumn = relation.valueColumn();
         String orderColumn = relation.orderColumn();
@@ -331,7 +379,7 @@ public final class EntityModel<T, ID> {
             }
             String prefix = relation.prefix().isBlank() ? snake(field.getName()) + "_" : relation.prefix();
             elementConstructor = constructor(elementType);
-            for (Field nested : elementType.getDeclaredFields()) {
+            for (Field nested : collectInstanceFields(elementType)) {
                 nested.setAccessible(true);
                 int mod = nested.getModifiers();
                 if (java.lang.reflect.Modifier.isStatic(mod) || java.lang.reflect.Modifier.isTransient(mod) || nested.isSynthetic()) {
@@ -760,5 +808,26 @@ public final class EntityModel<T, ID> {
             }
         }
         return trimmed;
+    }
+
+    /**
+     * Fires {@link PersistenceLifecycle#onDeserialized()} on embedded objects
+     * first (bottom-up), then on the entity itself if it implements the interface.
+     */
+    public void fireLifecycle(T entity) {
+        if (entity == null) return;
+
+        // Embedded objects first (bottom-up)
+        for (EmbeddedDef embedded : embeddeds) {
+            Object embeddedObj = embedded.handle().get(entity);
+            if (embeddedObj instanceof PersistenceLifecycle lifecycle) {
+                lifecycle.onDeserialized();
+            }
+        }
+
+        // Then the entity itself
+        if (entity instanceof PersistenceLifecycle lifecycle) {
+            lifecycle.onDeserialized();
+        }
     }
 }

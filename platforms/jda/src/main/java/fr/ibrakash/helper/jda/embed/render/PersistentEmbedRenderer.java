@@ -27,34 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Converts a {@link PersistentEmbedSpec} into JDA message payloads.
- *
- * <ul>
- *   <li>When {@link PersistentEmbedSpec#useV2Components()} is {@code true}, a
- *       Discord <b>Components V2 Container</b> is built and sent as a
- *       top-level component (no classic embed used).</li>
- *   <li>Otherwise a classic {@link net.dv8tion.jda.api.EmbedBuilder} message
- *       is built with fields, author, footer, thumbnail, image and action rows.</li>
- * </ul>
- *
- * <p>Placeholder substitution happens at parse time (see
- * {@link fr.ibrakash.helper.jda.embed.parser.PersistentEmbedParser}); the
- * renderer operates on already-resolved strings.
- */
 public class PersistentEmbedRenderer {
 
-    // ────────────────────────────────────────────────────────────────────────
     // Public API
-    // ────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Renders a spec into a {@link RenderedPersistentEmbed}.
-     *
-     * @param spec         the parsed embed specification
-     * @param customIdPrefix prefix prepended to every button/select custom-id
-     * @param placeholders  legacy map of placeholder → value (applied via replacer if non-null)
-     */
+    
     public RenderedPersistentEmbed render(
             PersistentEmbedSpec spec,
             String customIdPrefix,
@@ -96,9 +73,7 @@ public class PersistentEmbedRenderer {
         return builder.build();
     }
 
-    // ────────────────────────────────────────────────────────────────────────
     // Classic embed rendering
-    // ────────────────────────────────────────────────────────────────────────
 
     private RenderedPersistentEmbed renderClassic(
             PersistentEmbedSpec spec,
@@ -158,9 +133,7 @@ public class PersistentEmbedRenderer {
         return RenderedPersistentEmbed.classic(embed, rows);
     }
 
-    // ────────────────────────────────────────────────────────────────────────
     // Components V2 rendering
-    // ────────────────────────────────────────────────────────────────────────
 
     private RenderedPersistentEmbed renderV2(
             PersistentEmbedSpec spec,
@@ -276,9 +249,7 @@ public class PersistentEmbedRenderer {
         return container;
     }
 
-    // ────────────────────────────────────────────────────────────────────────
     // Shared action row building
-    // ────────────────────────────────────────────────────────────────────────
 
     private List<ActionRow> buildActionRows(
             PersistentEmbedSpec spec, String customIdPrefix, JdaTextReplacer replacer
@@ -338,9 +309,7 @@ public class PersistentEmbedRenderer {
         return rows;
     }
 
-    // ────────────────────────────────────────────────────────────────────────
     // Component builders
-    // ────────────────────────────────────────────────────────────────────────
 
     private Button buildJdaButton(
             PersistentButtonSpec spec, String prefix, JdaTextReplacer replacer
@@ -436,9 +405,7 @@ public class PersistentEmbedRenderer {
         };
     }
 
-    // ────────────────────────────────────────────────────────────────────────
     // Utilities
-    // ────────────────────────────────────────────────────────────────────────
 
     private JdaTextReplacer buildReplacer(Map<String, Object> placeholders) {
         if (placeholders == null || placeholders.isEmpty()) return null;
@@ -462,18 +429,9 @@ public class PersistentEmbedRenderer {
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────────
     // Rendered result
-    // ────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Holds the result of rendering a spec.
-     *
-     * <ul>
-     *   <li>Classic: {@link #embed()} is non-null, {@link #actionRows()} has the button rows.</li>
-     *   <li>V2:      {@link #embed()} is null, {@link #topLevelComponents()} has the Container.</li>
-     * </ul>
-     */
+    
     public static final class RenderedPersistentEmbed {
 
         private final MessageEmbed embed;
@@ -500,13 +458,13 @@ public class PersistentEmbedRenderer {
             return new RenderedPersistentEmbed(null, null, components);
         }
 
-        /** Non-null for classic embeds. */
+        
         public MessageEmbed embed() { return embed; }
 
-        /** Non-empty for classic embeds with buttons. */
+        
         public List<ActionRow> actionRows() { return actionRows; }
 
-        /** Non-empty for V2 component messages. */
+        
         public List<net.dv8tion.jda.api.components.MessageTopLevelComponent> topLevelComponents() {
             return topLevelComponents;
         }

@@ -1,27 +1,42 @@
 package fr.ibrakash.helper.jda.example;
 
 import fr.ibrakash.helper.jda.embed.PersistentChannelEmbed;
-import fr.ibrakash.helper.jda.platform.KashJdaAddon;
 import fr.ibrakash.helper.jda.logging.JdaBotLogger;
+import fr.ibrakash.helper.jda.platform.KashJdaAddon;
 
 import java.util.Map;
 
-/**
- * Example persistent embed using the classic Discord embed format.
- * Demonstrates: title, description, inline fields, author, footer,
- * thumbnail, image, color, buttons and a string-select menu.
- */
 public class GuildInfoPersistentEmbedExample extends PersistentChannelEmbed {
 
     private static final String PATH = "guild-info.container";
 
+    private final transient KashJdaAddon<?, ?, ?> addon;
     private String selectedPeriod = "7d";
 
     public GuildInfoPersistentEmbedExample(KashJdaAddon<?, ?, ?> addon, long targetChannelId) {
-        super(addon, targetChannelId);
+        super(targetChannelId);
+        this.addon = addon;
+        this.registerActions();
+    }
 
+    @Override
+    public KashJdaAddon<?, ?, ?> addon() {
+        return this.addon;
+    }
+
+    @Override
+    public String embedPath() {
+        return PATH;
+    }
+
+    @Override
+    public void onDeserialized() {
+        this.registerActions();
+    }
+
+    private void registerActions() {
         this.buttonAction("refresh_guild", event -> {
-            this.reloadMessage();
+            this.reload();
             event.reply("✅ Embed refreshed!").setEphemeral(true).queue();
         });
 
@@ -32,14 +47,9 @@ public class GuildInfoPersistentEmbedExample extends PersistentChannelEmbed {
         this.selectAction("guild_period", event -> {
             this.selectedPeriod = event.getValues().get(0);
             JdaBotLogger.info("Period changed to: %s", selectedPeriod);
-            this.reloadMessage();
+            this.reload();
             event.reply("📆 Period changed to **" + selectedPeriod + "**").setEphemeral(true).queue();
         });
-    }
-
-    @Override
-    public String embedPath() {
-        return PATH;
     }
 
     @Override

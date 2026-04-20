@@ -15,21 +15,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/**
- * Homes repository.
- *
- * <p>Owns the in-memory cache. All backend I/O goes through the annotation-driven
- * {@link EntityStore} — no adapters, no manual SQL statements needed.
- *
- * <pre>{@code
- * HomeRepository homes = HomeRepository.create(addon, config);
- * homes.save(HomeRecord.of(player.getUniqueId(), "base", player.getLocation()));
- * homes.list(player.getUniqueId()).forEach(h -> player.sendMessage(h.getName()));
- * homes.delete(player.getUniqueId(), "base");
- * homes.saveAll();
- * homes.close();
- * }</pre>
- */
 public final class HomeRepository {
 
     private final PersistenceSession session;
@@ -40,25 +25,18 @@ public final class HomeRepository {
     private HomeRepository(PersistenceSession session) {
         this.session = session;
         this.store = session.entity(HomeRecord.class, String.class);
-        // reload() is now automatically called by the base ConfigurationReader constructor.
     }
 
     public static HomeRepository create(KashAddon<JavaPlugin> addon, ConfigPersistence config) {
         return new HomeRepository(PersistenceSession.create(addon, config));
     }
 
-    // -------------------------------------------------------------------------
-    // Cache management
-    // -------------------------------------------------------------------------
 
     public void reload() {
         this.cache.clear();
         this.store.findAll().forEach(h -> this.cache.put(h.key(), h));
     }
 
-    // -------------------------------------------------------------------------
-    // Read operations (served from cache)
-    // -------------------------------------------------------------------------
 
     public Optional<HomeRecord> find(UUID owner, String name) {
         return Optional.ofNullable(this.cache.get(owner + ":" + name.toLowerCase()));
@@ -82,9 +60,6 @@ public final class HomeRepository {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    // -------------------------------------------------------------------------
-    // Write operations (write-through: cache + backend)
-    // -------------------------------------------------------------------------
 
     public void save(HomeRecord home) {
         this.cache.put(home.key(), home);
@@ -101,9 +76,6 @@ public final class HomeRepository {
         this.store.saveAll(this.cache.values());
     }
 
-    // -------------------------------------------------------------------------
-    // Lifecycle
-    // -------------------------------------------------------------------------
 
     public void close() {
         this.session.close();

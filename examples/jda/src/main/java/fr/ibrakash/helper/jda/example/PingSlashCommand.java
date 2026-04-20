@@ -3,9 +3,6 @@ package fr.ibrakash.helper.jda.example;
 import fr.ibrakash.helper.jda.command.JdaSlashCommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-/**
- * Basic health-check command driven by locale config.
- */
 public class PingSlashCommand implements JdaSlashCommand {
 
     private final JdaExample addon;

@@ -303,37 +303,38 @@ class NullableEmbeddedTest {
             Files.deleteIfExists(db);
         }
     }
-    }
-        }
-            Files.deleteIfExists(db);
-        } finally {
-            assertNotNull(loaded.get(0).shield, "Partial projection must not force nullable embedded to null");
-            assertEquals(1, loaded.size());
 
-            List<TownWarData> loaded = store.findAllByIds(List.of("town-partial"), Set.of("name", "shield_level"));
-            // Before the fix, nullable evaluation could nullify shield based on incomplete data.
-            // Load only a partial projection including one embedded default column.
+    @Test
+    void nullableEmbedded_partialProjectionMustNotForceNull() throws Exception {
+        Path db = Files.createTempFile("kash-nullable-embedded-partial", ".db");
+
+        ConfigSql config = new ConfigSql()
+                .driver(SqlDriverType.SQLITE)
+                .database(db.toString())
+                .poolSize(2);
+
+        try (SqlPersistenceEngine engine = new SqlPersistenceEngine(config)) {
+            SqlEntityStore<TownWarData, String> store = new SqlEntityStore<>(engine, TownWarData.class, String.class);
+
+            TownWarData town = new TownWarData();
+            town.id = "town-partial";
+            town.name = "PartialTown";
+            town.shield = new ShieldDisplay();
+            town.shield.x = 10;   // non-default in DB
+            town.shield.level = 0; // default value
 
             store.save(town);
-            town.shield.level = 0; // default value
-            town.shield.x = 10;   // non-default in DB
-            town.shield = new ShieldDisplay();
-            town.name = "PartialTown";
-            town.id = "town-partial";
-            TownWarData town = new TownWarData();
 
-            SqlEntityStore<TownWarData, String> store = new SqlEntityStore<>(engine, TownWarData.class, String.class);
-        try (SqlPersistenceEngine engine = new SqlPersistenceEngine(config)) {
+            // Load only a partial projection including one embedded default column.
+            // Before the fix, nullable evaluation could nullify shield based on incomplete data.
+            List<TownWarData> loaded = store.findAllByIds(List.of("town-partial"), Set.of("name", "shield_level"));
 
-                .poolSize(2);
-                .database(db.toString())
-                .driver(SqlDriverType.SQLITE)
-        ConfigSql config = new ConfigSql()
-
-        Path db = Files.createTempFile("kash-nullable-embedded-partial", ".db");
-    void nullableEmbedded_partialProjectionMustNotForceNull() throws Exception {
-    @Test
-
+            assertEquals(1, loaded.size());
+            assertNotNull(loaded.get(0).shield, "Partial projection must not force nullable embedded to null");
+        } finally {
+            Files.deleteIfExists(db);
+        }
+    }
 
     // -------------------- Test entities --------------------
 
@@ -383,6 +384,8 @@ class NullableEmbeddedTest {
         String id;
 
         @PersistedEmbedded(prefix = "settings_", nullable = true)
+        SettingsWithDefaults settings;
+    }
 
     static class SettingsWithDefaults {
         @PersistedColumn(value = "notifications", nullable = false, defaultValue = "true")

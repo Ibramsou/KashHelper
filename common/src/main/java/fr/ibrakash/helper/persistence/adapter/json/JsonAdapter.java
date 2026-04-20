@@ -14,18 +14,7 @@ public abstract class JsonAdapter<R extends DatabaseRepository> extends Database
         super(repository);
     }
 
-    /**
-     * Loads an entire JSON file into {@code target}.
-     *
-     * <p>The file is resolved as {@code <storageFolder>/<snake_entity_name>.json}
-     * (e.g. {@code PlayerProfile} → {@code player_profile.json}).
-     *
-     * @param target      the map to populate (must be mutable)
-     * @param keyClass    the JSON key type
-     * @param entityClass the JSON value type
-     * @param <K>         key type
-     * @param <V>         value / entity type
-     */
+    
     public <K, V> void loadEntireData(Map<K, V> target, Class<K> keyClass, Class<V> entityClass) {
         File folder = repository.storageFolder();
         File file = new File(folder, snake(entityClass.getSimpleName()) + ".json");
@@ -33,9 +22,7 @@ public abstract class JsonAdapter<R extends DatabaseRepository> extends Database
         target.putAll(loaded);
     }
 
-    /**
-     * Writes the whole {@code source} map to a JSON file named after {@code entityClass}.
-     */
+    
     public <K, V> void flushEntireData(Map<K, V> source, Class<V> entityClass) {
         File folder = repository.storageFolder();
         File file = new File(folder, snake(entityClass.getSimpleName()) + ".json");

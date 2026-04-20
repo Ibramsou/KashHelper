@@ -8,12 +8,6 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Function;
 
-/**
- * Caches dynamic SQL templates keyed by pattern + arity.
- *
- * <p>This is intended for SQL strings whose placeholder count depends on runtime input,
- * such as {@code IN (?, ?, ...)} queries for bulk loads.
- */
 public final class SqlStatementTemplateCache {
 
     private static final Duration EXPIRATION = Duration.ofHours(6);

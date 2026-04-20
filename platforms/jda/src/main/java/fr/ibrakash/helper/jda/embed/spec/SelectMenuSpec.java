@@ -2,12 +2,6 @@ package fr.ibrakash.helper.jda.embed.spec;
 
 import java.util.List;
 
-/**
- * Spec for a string or entity select menu.
- *
- * <p>The {@code type} field controls which kind of select menu is rendered:
- * {@code "string"}, {@code "user"}, {@code "role"}, {@code "channel"}, {@code "mentionable"}.
- */
 public record SelectMenuSpec(
         String id,
         String type,

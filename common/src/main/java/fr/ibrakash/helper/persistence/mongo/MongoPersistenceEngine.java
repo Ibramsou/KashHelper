@@ -7,12 +7,6 @@ import fr.ibrakash.helper.configuration.objects.database.ConfigMongo;
 import fr.ibrakash.helper.persistence.PersistenceEngine;
 import fr.ibrakash.helper.persistence.PersistenceType;
 
-/**
- * Optional MongoDB engine.
- *
- * <p>It is intentionally narrow: repositories that need Mongo-specific APIs
- * can downcast the engine or expose their own mongo-aware abstractions.
- */
 public class MongoPersistenceEngine implements PersistenceEngine {
 
     private final MongoClient client;

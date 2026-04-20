@@ -7,9 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * Declares a computed rank field for leaderboard-like ordering.
- *
- * <p>The annotated field must be {@code transient}; its value is computed at runtime
- * from {@link #sort_columns()} and is never persisted directly.</p>
+ * The annotated field must be {@code transient}; its value is computed at runtime
+ * from {@link #sort_columns()} and is never persisted directly.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

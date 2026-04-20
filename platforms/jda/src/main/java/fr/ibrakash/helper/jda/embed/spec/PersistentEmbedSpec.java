@@ -4,20 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Fully parsed specification of a persistent embed message.
- *
- * <p>A spec is either rendered as a <b>classic embed</b> (when
- * {@link #useV2Components()} is {@code false}) or as a Discord
- * <b>Components V2 Container</b> message (when {@code true}).
- *
- * <p>Components V2 is automatically selected when any of the V2-only
- * fields are populated ({@code textDisplays}, {@code sections},
- * {@code separators}, {@code mediaGalleries}).
- */
 public final class PersistentEmbedSpec {
 
-    // ── Classic embed ────────────────────────────────────────────────────────
+    // classic embed
     private final String title;
     private final List<String> bodyLines;
     private final List<EmbedFieldSpec> fields;
@@ -27,7 +16,7 @@ public final class PersistentEmbedSpec {
     private final String thumbnailUrl;
     private final String color;
 
-    // ── V2 components ────────────────────────────────────────────────────────
+    // v2 components
     private final List<String> textDisplays;
     private final List<SectionSpec> sections;
     private final List<MediaGallerySpec> mediaGalleries;
@@ -35,7 +24,7 @@ public final class PersistentEmbedSpec {
     private final String containerColor;
     private final boolean containerSpoiler;
 
-    // ── Shared (buttons / selects) ───────────────────────────────────────────
+    // shared (buttons / selects)
     private final List<ActionRowSpec> actionRows;
 
     private PersistentEmbedSpec(Builder b) {
@@ -58,7 +47,6 @@ public final class PersistentEmbedSpec {
         this.actionRows = List.copyOf(b.actionRows);
     }
 
-    // ── Classic embed accessors ──────────────────────────────────────────────
 
     public String title() { return title; }
     public List<String> bodyLines() { return bodyLines; }
@@ -69,7 +57,6 @@ public final class PersistentEmbedSpec {
     public String thumbnailUrl() { return thumbnailUrl; }
     public String color() { return color; }
 
-    // ── V2 component accessors ───────────────────────────────────────────────
 
     public List<String> textDisplays() { return textDisplays; }
     public List<SectionSpec> sections() { return sections; }
@@ -78,7 +65,6 @@ public final class PersistentEmbedSpec {
     public String containerColor() { return containerColor; }
     public boolean containerSpoiler() { return containerSpoiler; }
 
-    // ── Shared accessors ─────────────────────────────────────────────────────
 
     public List<ActionRowSpec> actionRows() { return actionRows; }
 
@@ -88,10 +74,6 @@ public final class PersistentEmbedSpec {
                 .toList();
     }
 
-    /**
-     * Returns {@code true} if any V2-only component is present, meaning the
-     * renderer should use a Container rather than a classic embed.
-     */
     public boolean useV2Components() {
         return !textDisplays.isEmpty()
                 || !sections.isEmpty()
@@ -101,11 +83,10 @@ public final class PersistentEmbedSpec {
 
     public static Builder builder() { return new Builder(); }
 
-    // ── Builder ──────────────────────────────────────────────────────────────
 
     public static final class Builder {
 
-        // classic
+        // classic embed
         private String title;
         private final List<String> bodyLines = new ArrayList<>();
         private final List<EmbedFieldSpec> fields = new ArrayList<>();
@@ -115,7 +96,7 @@ public final class PersistentEmbedSpec {
         private String thumbnailUrl;
         private String color;
 
-        // v2
+        // v2 components
         private final List<String> textDisplays = new ArrayList<>();
         private final List<SectionSpec> sections = new ArrayList<>();
         private final List<MediaGallerySpec> mediaGalleries = new ArrayList<>();
@@ -125,8 +106,6 @@ public final class PersistentEmbedSpec {
 
         // shared
         private final List<ActionRowSpec> actionRows = new ArrayList<>();
-
-        // ── classic ──────────────────────────────────────────────────────────
 
         public Builder title(String title) { this.title = title; return this; }
 
@@ -145,8 +124,6 @@ public final class PersistentEmbedSpec {
         public Builder imageUrl(String url) { this.imageUrl = url; return this; }
         public Builder thumbnailUrl(String url) { this.thumbnailUrl = url; return this; }
         public Builder color(String color) { this.color = color; return this; }
-
-        // ── v2 ───────────────────────────────────────────────────────────────
 
         public Builder addTextDisplay(String text) {
             if (text != null && !text.isBlank()) this.textDisplays.add(text);
@@ -170,8 +147,6 @@ public final class PersistentEmbedSpec {
 
         public Builder containerColor(String color) { this.containerColor = color; return this; }
         public Builder containerSpoiler(boolean spoiler) { this.containerSpoiler = spoiler; return this; }
-
-        // ── shared ───────────────────────────────────────────────────────────
 
         public Builder addActionRow(ActionRowSpec row) {
             if (row != null) this.actionRows.add(row);

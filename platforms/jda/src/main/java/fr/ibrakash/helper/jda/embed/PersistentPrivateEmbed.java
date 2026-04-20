@@ -1,24 +1,21 @@
 package fr.ibrakash.helper.jda.embed;
 
 import fr.ibrakash.helper.jda.configuration.readers.JdaSystemLocale;
-import fr.ibrakash.helper.jda.platform.KashJdaAddon;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Persistent embed routed to a user DM.
- */
 public abstract class PersistentPrivateEmbed extends PersistentEmbed {
 
     private final long constructorUserId;
 
-    protected PersistentPrivateEmbed(KashJdaAddon<?, ?, ?> addon) {
-        this(addon, -1L);
+    protected PersistentPrivateEmbed() {
+        this(-1L);
     }
 
-    protected PersistentPrivateEmbed(KashJdaAddon<?, ?, ?> addon, long userId) {
-        super(addon);
+    protected PersistentPrivateEmbed(long userId) {
         this.constructorUserId = userId;
     }
 
@@ -26,11 +23,6 @@ public abstract class PersistentPrivateEmbed extends PersistentEmbed {
         return this.constructorUserId;
     }
 
-    /**
-     * The system-locale path used when a DM cannot be delivered.
-     * Defaults to {@link JdaSystemLocale#DIRECT_MESSAGE_DISABLED}.
-     * Override to use a different key.
-     */
     public String dmDisabledMessagePath() {
         return JdaSystemLocale.DIRECT_MESSAGE_DISABLED;
     }
@@ -43,9 +35,6 @@ public abstract class PersistentPrivateEmbed extends PersistentEmbed {
         return this.reloadMessageWithStatus(fallbackReplyEvent).thenApply(ignored -> null);
     }
 
-    /**
-     * @return true when a DM message was actually sent/updated, false when fallback handling was used.
-     */
     public CompletableFuture<Boolean> reloadMessageWithStatus(IReplyCallback fallbackReplyEvent) {
         this.markActive();
         return this.addon().getPersistentEmbedManager().reload(this, fallbackReplyEvent)
@@ -56,5 +45,27 @@ public abstract class PersistentPrivateEmbed extends PersistentEmbed {
                     }
                     return false;
                 });
+    }
+
+    @Override
+    protected CompletableFuture<MessageChannel> resolveChannel() {
+        long userId = userId();
+        if (userId <= 0L) {
+            return CompletableFuture.failedFuture(
+                    new IllegalStateException("PersistentPrivateEmbed requires a valid user id"));
+        }
+        return requireAddon().getJda().retrieveUserById(userId)
+                .submit()
+                .thenCompose(user -> user.openPrivateChannel().submit())
+                .thenApply(channel -> channel);
+    }
+
+    @Override
+    protected CompletableFuture<Message> handleReloadFailure(IReplyCallback fallback, Throwable error) {
+        if (fallback != null) {
+            this.systemLocale().reply(this.dmDisabledMessagePath(), fallback, this.dmDisabledMessageReplacers());
+            return CompletableFuture.completedFuture(null);
+        }
+        return CompletableFuture.failedFuture(error);
     }
 }

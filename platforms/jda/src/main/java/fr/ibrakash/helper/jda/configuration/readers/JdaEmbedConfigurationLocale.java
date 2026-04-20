@@ -6,9 +6,6 @@ import fr.ibrakash.helper.platform.KashAddon;
 
 import java.util.List;
 
-/**
- * JDA locale reader backed by an XML file.
- */
 public abstract class JdaEmbedConfigurationLocale extends JdaConfigurationLocale {
 
     private final XmlLocaleReader xmlLocaleReader;
