@@ -1,0 +1,21 @@
+database:
+  type: JSON
+  fallbacks:
+  - SQL
+  sql:
+    driver: MYSQL
+    custom-url: ''
+    host: localhost
+    port: 3306
+    database: example
+    user: root
+    password: root
+    pool-size: 5
+  json:
+    folder: storage
+  mongo:
+    uri: mongodb://localhost:27017
+    database: kashhelper
+    collection-prefix: kash_
+token: YOUR_BOT_TOKEN
+dev-guild-id: '1479442680470835222'
