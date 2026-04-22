@@ -835,8 +835,10 @@ public abstract class DatabaseRepository extends PersistenceSession {
     }
 
     private static Class<?> inferIdType(Class<?> entityType) {
-        for (Field f : entityType.getDeclaredFields()) {
-            if (f.getAnnotation(PersistedId.class) != null) return f.getType();
+        for (Class<?> cursor = entityType; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
+            for (Field f : cursor.getDeclaredFields()) {
+                if (f.getAnnotation(PersistedId.class) != null) return f.getType();
+            }
         }
 
         PersistedDefaultId persistedDefaultId = entityType.getAnnotation(PersistedDefaultId.class);
@@ -847,13 +849,15 @@ public abstract class DatabaseRepository extends PersistenceSession {
                 throw new IllegalArgumentException("@PersistedDefaultId value must not be blank in " + entityType.getName());
             }
 
-            for (Field f : entityType.getDeclaredFields()) {
-                PersistedColumn persistedColumn = f.getAnnotation(PersistedColumn.class);
-                String resolvedName = persistedColumn == null || persistedColumn.value().isBlank()
-                        ? toSnake(f.getName())
-                        : persistedColumn.value();
-                if (resolvedName.equalsIgnoreCase(idColumnName)) {
-                    return f.getType();
+            for (Class<?> cursor = entityType; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
+                for (Field f : cursor.getDeclaredFields()) {
+                    PersistedColumn persistedColumn = f.getAnnotation(PersistedColumn.class);
+                    String resolvedName = persistedColumn == null || persistedColumn.value().isBlank()
+                            ? toSnake(f.getName())
+                            : persistedColumn.value();
+                    if (resolvedName.equalsIgnoreCase(idColumnName)) {
+                        return f.getType();
+                    }
                 }
             }
 

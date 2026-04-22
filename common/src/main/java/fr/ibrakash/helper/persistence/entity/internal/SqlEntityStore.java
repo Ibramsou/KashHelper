@@ -562,6 +562,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Map<ID, List<Object>> loadRelationValues(EntityModel.RelationDef relation, List<ID> ids) {
         String sql = selectRelationByIdsSql(relation, ids.size());
         return this.database.resultPreparedStatement(sql, stmt -> {
@@ -573,7 +574,7 @@ public final class SqlEntityStore<T, ID> implements EntityStore<T, ID> {
             ResultSet rs = stmt.executeQuery();
             Map<ID, List<Object>> grouped = new LinkedHashMap<>();
             while (rs.next()) {
-                ID ownerId = this.model.idType().cast(EntityTypeMapper.read(rs, relation.joinColumn(), this.model.idType()));
+                ID ownerId = (ID) EntityModel.wrapType(this.model.idType()).cast(EntityTypeMapper.read(rs, relation.joinColumn(), this.model.idType()));
                 Object value = relation.simple()
                         ? EntityTypeMapper.read(rs, relation.valueColumn(), relation.elementType())
                         : mapRelationObject(rs, relation);

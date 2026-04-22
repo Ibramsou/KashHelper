@@ -2,14 +2,13 @@ package fr.ibrakash.helper.jda.example.embed.v2;
 
 import fr.ibrakash.helper.jda.embed.PersistentChannelEmbed;
 import fr.ibrakash.helper.jda.example.JdaExample;
+import fr.ibrakash.helper.jda.logging.JdaBotLogger;
 import fr.ibrakash.helper.persistence.entity.*;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @PersistedEntity("persistence_examples")
 @PersistedDefaultId("message_id")
@@ -17,8 +16,6 @@ public class PersistenceExample extends PersistentChannelEmbed {
 
     private static final String PATH = "persistence-example";
     private static final List<String> PERIODS = List.of("7d", "30d", "all");
-
-    private transient long initialChannelId = -1L;
 
     @PersistedColumn("owner_id")
     private long ownerId;
@@ -37,7 +34,6 @@ public class PersistenceExample extends PersistentChannelEmbed {
 
     public PersistenceExample(long targetChannelId, long ownerId) {
         super(targetChannelId);
-        this.initialChannelId = targetChannelId;
         this.ownerId = ownerId;
         this.ensureState();
         this.recordHistory("created");
@@ -46,10 +42,6 @@ public class PersistenceExample extends PersistentChannelEmbed {
 
     public long id() {
         return this.messageId();
-    }
-
-    public long initialChannelId() {
-        return this.initialChannelId;
     }
 
     @Override
@@ -63,27 +55,9 @@ public class PersistenceExample extends PersistentChannelEmbed {
     }
 
     @Override
-    protected CompletableFuture<MessageChannel> resolveChannel() {
-        if (this.messageId() > 0L) {
-            return this.resolveChannelByMessageId(this.messageId());
-        }
-
-        if (this.initialChannelId > 0L) {
-            MessageChannel channel = this.requireAddon().getJda().getChannelById(MessageChannel.class, this.initialChannelId);
-            if (channel != null) {
-                return CompletableFuture.completedFuture(channel);
-            }
-        }
-
-        return CompletableFuture.failedFuture(new IllegalStateException(
-                "Cannot resolve channel before first send: no message id and no initial channel id."));
-    }
-
-    @Override
     public void onDeserialized() {
         this.ensureState();
         this.registerActions();
-        this.reload();
     }
 
     @Override
@@ -92,7 +66,7 @@ public class PersistenceExample extends PersistentChannelEmbed {
         return Map.ofEntries(
                 Map.entry("%embed_id%", String.valueOf(this.messageId())),
                 Map.entry("%owner_id%", String.valueOf(this.ownerId)),
-                Map.entry("%channel_id%", String.valueOf(this.initialChannelId)),
+                Map.entry("%channel_id%", String.valueOf(this.getChannelId())),
                 Map.entry("%current_period%", this.currentPeriod()),
                 Map.entry("%current_score%", this.currentScore()),
                 Map.entry("%refresh_count%", String.valueOf(this.embeddedEmbed.refreshCount)),
@@ -186,23 +160,34 @@ public class PersistenceExample extends PersistentChannelEmbed {
     }
 
     private void reloadAndSave(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, String successMessage) {
+        long previousMessageId = this.messageId();
         event.deferReply(true).queue(hook ->
                 this.reload().whenComplete((ignored, error) -> {
                     if (error != null) {
                         hook.editOriginal("Impossible to update the persisted embed: " + error.getMessage()).queue();
                         return;
                     }
-                    this.saveState();
-                    hook.editOriginal(successMessage).queue();
+
+                    try {
+                        this.saveState(previousMessageId);
+                        hook.editOriginal(successMessage).queue();
+                    } catch (Exception exception) {
+                        JdaBotLogger.error("Unable to save PersistenceExample after button interaction", exception);
+                        hook.editOriginal("Impossible to save the persisted embed: " + exception.getMessage()).queue();
+                    }
                 })
         );
     }
 
     private void saveState() {
+        this.saveState(this.messageId());
+    }
+
+    private void saveState(long previousMessageId) {
         this.ensureState();
         this.embeddedEmbed.messageId = this.messageId();
         this.embeddedEmbed.selectedPeriod = this.currentPeriod();
-        this.addon().requirePersistenceExampleRepository().save(this);
+        this.addon().requirePersistenceExampleRepository().save(this, previousMessageId);
     }
 
     private void ensureState() {
@@ -288,7 +273,7 @@ public class PersistenceExample extends PersistentChannelEmbed {
     private String buildStateMessage() {
         this.ensureState();
         return "embed=" + this.messageId()
-                + "\nchannel=" + this.initialChannelId
+                + "\nchannel=" + this.getChannelId()
                 + "\nperiod=" + this.currentPeriod()
                 + "\nscore=" + this.blobExample.score
                 + "\nrefreshes=" + this.embeddedEmbed.refreshCount
@@ -296,31 +281,5 @@ public class PersistenceExample extends PersistentChannelEmbed {
                 + "\nhistory=" + this.history.size()
                 + "\nlast action=" + this.blobExample.lastAction
                 + "\nlast refresh=" + this.blobExample.lastRefreshEpochMillis;
-    }
-
-    private CompletableFuture<MessageChannel> resolveChannelByMessageId(long messageId) {
-        List<MessageChannel> channels = this.requireAddon().getJda().getGuilds().stream()
-                .flatMap(guild -> guild.getChannels().stream())
-                .filter(MessageChannel.class::isInstance)
-                .map(MessageChannel.class::cast)
-                .toList();
-
-        if (channels.isEmpty()) {
-            return CompletableFuture.failedFuture(new IllegalStateException("No message channels available in cache."));
-        }
-
-        return this.findMessageChannel(channels, messageId, 0);
-    }
-
-    private CompletableFuture<MessageChannel> findMessageChannel(List<MessageChannel> channels, long messageId, int index) {
-        if (index >= channels.size()) {
-            return CompletableFuture.failedFuture(new IllegalStateException("Message not found for id: " + messageId));
-        }
-
-        MessageChannel channel = channels.get(index);
-        return channel.retrieveMessageById(messageId)
-                .submit()
-                .thenApply(ignored -> channel)
-                .exceptionallyCompose(ignored -> this.findMessageChannel(channels, messageId, index + 1));
     }
 }

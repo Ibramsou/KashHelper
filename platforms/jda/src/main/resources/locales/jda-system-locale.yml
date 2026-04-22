@@ -25,3 +25,7 @@ command-only-guild: "⚠️ This command can only be used inside a server."
 
 # Sent when a command is used inside a guild but requires a DM context.
 command-only-dm: "⚠️ This command can only be used in direct messages."
+
+# Sent as an ephemeral reply after a successful /reload execution.
+config-reloaded: "✅ All configurations have been reloaded."
+

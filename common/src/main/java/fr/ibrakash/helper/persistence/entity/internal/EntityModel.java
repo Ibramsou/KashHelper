@@ -22,20 +22,32 @@ import fr.ibrakash.helper.persistence.query.SortDirection;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class EntityModel<T, ID> {
 
     private static final int MAX_INDEX_NAME_LENGTH = 63;
+    private static final Map<ModelKey, EntityModel<?, ?>> MODEL_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, RawModel> RAW_MODEL_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, List<Field>> INSTANCE_FIELD_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, ClassAnnotations> CLASS_ANNOTATION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Field, FieldAnnotations> FIELD_ANNOTATION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Constructor<?>> CONSTRUCTOR_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Field, VarHandle> VAR_HANDLE_CACHE = new ConcurrentHashMap<>();
 
     public record Column(
             Field rootField,
@@ -98,6 +110,39 @@ public final class EntityModel<T, ID> {
             List<Column> columns
     ) {}
 
+    private record ModelKey(Class<?> entityType, Class<?> idType) {}
+
+    private record RawModel(
+            Class<?> entityType,
+            String namespace,
+            Column idColumn,
+            List<Column> columns,
+            List<IndexDef> indexes,
+            List<RelationDef> relations,
+            List<BlobDef> blobs,
+            List<EmbeddedDef> embeddeds,
+            Constructor<?> entityConstructor,
+            PersistedJsonMode jsonMode,
+            List<RankDef> ranks
+    ) {}
+
+    private record ClassAnnotations(
+            PersistedDefaultId defaultId,
+            PersistedEntity entity,
+            PersistedJson json,
+            PersistedIndex index,
+            PersistedIndexes indexes
+    ) {}
+
+    private record FieldAnnotations(
+            PersistedId id,
+            PersistedRelation relation,
+            PersistedEmbedded embedded,
+            PersistedColumn column,
+            PersistedBlob blob,
+            PersistedRank rank
+    ) {}
+
     private final Class<T> entityType;
     private final Class<ID> idType;
     private final String namespace;
@@ -110,6 +155,9 @@ public final class EntityModel<T, ID> {
     private final Constructor<T> entityConstructor;
     private final PersistedJsonMode jsonMode;
     private final List<RankDef> ranks;
+    private final Map<String, Column> columnLookup;
+    private final Map<String, RankDef> rankLookup;
+    private final List<RankDef> ranksMarkedForDeserialize;
 
     private EntityModel(Class<T> entityType,
                         Class<ID> idType,
@@ -135,9 +183,49 @@ public final class EntityModel<T, ID> {
         this.entityConstructor = entityConstructor;
         this.jsonMode = jsonMode;
         this.ranks = ranks;
+        this.columnLookup = buildColumnLookup(idColumn, columns);
+        this.rankLookup = buildRankLookup(ranks);
+        this.ranksMarkedForDeserialize = ranks.stream().filter(RankDef::loadOnDeserialize).toList();
     }
 
+    @SuppressWarnings("unchecked")
     public static <T, ID> EntityModel<T, ID> from(Class<T> entityType, Class<ID> idType) {
+        ModelKey key = new ModelKey(entityType, idType);
+        return (EntityModel<T, ID>) MODEL_CACHE.computeIfAbsent(key, ignored -> createModel(entityType, idType));
+    }
+
+    public static Class<?> inferIdType(Class<?> entityType) {
+        return rawModel(entityType).idColumn().type();
+    }
+
+    private static <T, ID> EntityModel<T, ID> createModel(Class<T> entityType, Class<ID> idType) {
+        RawModel rawModel = rawModel(entityType);
+        validateIdType(entityType, idType, rawModel.idColumn().type());
+
+        @SuppressWarnings("unchecked")
+        Constructor<T> entityConstructor = (Constructor<T>) rawModel.entityConstructor();
+
+        return new EntityModel<>(
+                entityType,
+                idType,
+                rawModel.namespace(),
+                rawModel.idColumn(),
+                rawModel.columns(),
+                rawModel.indexes(),
+                rawModel.relations(),
+                rawModel.blobs(),
+                rawModel.embeddeds(),
+                entityConstructor,
+                rawModel.jsonMode(),
+                rawModel.ranks()
+        );
+    }
+
+    private static RawModel rawModel(Class<?> entityType) {
+        return RAW_MODEL_CACHE.computeIfAbsent(entityType, EntityModel::createRawModel);
+    }
+
+    private static RawModel createRawModel(Class<?> entityType) {
         Field idField = null;
         String defaultJoinColumn = null;
         List<Column> cols = new ArrayList<>();
@@ -145,21 +233,22 @@ public final class EntityModel<T, ID> {
         List<BlobDef> blobs = new ArrayList<>();
         List<RankDef> ranks = new ArrayList<>();
         List<EmbeddedDef> embeddeds = new ArrayList<>();
+        List<Field> relationFields = new ArrayList<>();
 
-        for (Field field : entityType.getDeclaredFields()) {
-            field.setAccessible(true);
-
-            PersistedId id = field.getAnnotation(PersistedId.class);
-            PersistedRelation relation = field.getAnnotation(PersistedRelation.class);
-            PersistedEmbedded embedded = field.getAnnotation(PersistedEmbedded.class);
-            PersistedColumn col = field.getAnnotation(PersistedColumn.class);
-            PersistedBlob blob = field.getAnnotation(PersistedBlob.class);
-            PersistedRank rank = field.getAnnotation(PersistedRank.class);
+        for (Field field : instanceFields(entityType)) {
+            FieldAnnotations annotations = fieldAnnotations(field);
+            PersistedId id = annotations.id();
+            PersistedRelation relation = annotations.relation();
+            PersistedEmbedded embedded = annotations.embedded();
+            PersistedColumn col = annotations.column();
+            PersistedBlob blob = annotations.blob();
+            PersistedRank rank = annotations.rank();
 
             if (id != null) {
                 if (idField != null) {
                     throw new IllegalArgumentException("Multiple @PersistedId fields in " + entityType.getName());
                 }
+                warnFinalField(field);
                 String name = id.value().isBlank() ? snake(field.getName()) : id.value();
                 idField = field;
                 defaultJoinColumn = snake(field.getName());
@@ -169,6 +258,7 @@ public final class EntityModel<T, ID> {
             }
 
             if (relation != null) {
+                relationFields.add(field);
                 continue;
             }
 
@@ -195,13 +285,14 @@ public final class EntityModel<T, ID> {
             }
 
             if (col == null) {
-                int mod = field.getModifiers();
-                if (java.lang.reflect.Modifier.isStatic(mod) || java.lang.reflect.Modifier.isTransient(mod) || field.isSynthetic()) {
+                if (isIgnoredField(field)) {
                     continue;
                 }
+                warnFinalField(field);
                 cols.add(new Column(null, field, snake(field.getName()), field.getType(), true, "", 255, false,
                         null, varHandle(field), null));
             } else {
+                warnFinalField(field);
                 String name = col.value().isBlank() ? snake(field.getName()) : col.value();
                 cols.add(new Column(null, field, name, field.getType(), col.nullable(), col.defaultValue(), col.length(), false,
                         null, varHandle(field), null));
@@ -209,7 +300,7 @@ public final class EntityModel<T, ID> {
         }
 
         if (idField == null) {
-            PersistedDefaultId persistedDefaultId = entityType.getAnnotation(PersistedDefaultId.class);
+            PersistedDefaultId persistedDefaultId = classAnnotations(entityType).defaultId();
 
             if (persistedDefaultId == null) {
                 throw new IllegalArgumentException("Missing @PersistedId field in " + entityType.getName());
@@ -256,17 +347,16 @@ public final class EntityModel<T, ID> {
             defaultJoinColumn = idColumnName;
         }
 
-        for (Field field : entityType.getDeclaredFields()) {
-            PersistedRelation relation = field.getAnnotation(PersistedRelation.class);
-            if (relation == null) continue;
-            field.setAccessible(true);
+        for (Field field : relationFields) {
+            PersistedRelation relation = fieldAnnotations(field).relation();
             relations.add(parseRelation(field, relation, defaultJoinColumn));
         }
 
         Column idCol = cols.stream().filter(Column::id).findFirst().orElseThrow();
         List<Column> nonId = cols.stream().filter(c -> !c.id()).toList();
 
-        PersistedEntity entityAnn = entityType.getAnnotation(PersistedEntity.class);
+        ClassAnnotations classAnnotations = classAnnotations(entityType);
+        PersistedEntity entityAnn = classAnnotations.entity();
         String namespace = entityAnn != null && !entityAnn.value().isBlank()
                 ? entityAnn.value()
                 : snake(entityType.getSimpleName());
@@ -276,27 +366,26 @@ public final class EntityModel<T, ID> {
         List<SortClause> defaultSort = List.of(new SortClause(idCol.name(), SortDirection.ASC));
         List<RankDef> resolvedRanks = new ArrayList<>(ranks.size());
         for (RankDef rank : ranks) {
-            PersistedRank ann = rank.field().getAnnotation(PersistedRank.class);
+            PersistedRank ann = fieldAnnotations(rank.field()).rank();
             List<SortClause> parsed = parseSortClauses(ann.sort_columns(), idCol, nonId);
             if (parsed.isEmpty()) parsed = defaultSort;
             resolvedRanks.add(new RankDef(rank.field(), rank.handle(), rank.name(), parsed, rank.loadOnDeserialize()));
         }
 
-        PersistedJson persistedJson = entityType.getAnnotation(PersistedJson.class);
+        PersistedJson persistedJson = classAnnotations.json();
         PersistedJsonMode configured = persistedJson == null ? PersistedJsonMode.AUTO : persistedJson.mode();
         PersistedJsonMode jsonMode = configured == PersistedJsonMode.AUTO
                 ? (resolvedRanks.isEmpty() ? PersistedJsonMode.LOAD_ON_DEMAND : PersistedJsonMode.LOAD_ALL)
                 : configured;
 
-        return new EntityModel<>(
+        return new RawModel(
                 entityType,
-                idType,
                 namespace,
                 idCol,
-                nonId,
-                indexes,
-                relations,
-                blobs,
+                List.copyOf(nonId),
+                List.copyOf(indexes),
+                List.copyOf(relations),
+                List.copyOf(blobs),
                 List.copyOf(embeddeds),
                 constructor(entityType),
                 jsonMode,
@@ -310,14 +399,12 @@ public final class EntityModel<T, ID> {
         VarHandle rootHandle = varHandle(rootField);
         Constructor<?> rootConstructor = constructor(rootField.getType());
 
-        for (Field nested : collectInstanceFields(rootField.getType())) {
-            nested.setAccessible(true);
-            int mod = nested.getModifiers();
-            if (java.lang.reflect.Modifier.isStatic(mod) || java.lang.reflect.Modifier.isTransient(mod) || nested.isSynthetic()) {
+        for (Field nested : instanceFields(rootField.getType())) {
+            if (isIgnoredField(nested)) {
                 continue;
             }
 
-            PersistedColumn nestedCol = nested.getAnnotation(PersistedColumn.class);
+            PersistedColumn nestedCol = fieldAnnotations(nested).column();
             String baseName = nestedCol == null || nestedCol.value().isBlank() ? snake(nested.getName()) : nestedCol.value();
             boolean nullable = nestedCol == null || nestedCol.nullable();
             String defaultValue = nestedCol == null ? "" : nestedCol.defaultValue();
@@ -327,22 +414,6 @@ public final class EntityModel<T, ID> {
         }
 
         return out;
-    }
-
-    private static List<Field> collectInstanceFields(Class<?> type) {
-        List<Field> fields = new ArrayList<>();
-        Set<String> seenNames = new HashSet<>();
-
-        for (Class<?> cursor = type; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
-            for (Field field : cursor.getDeclaredFields()) {
-                if (!seenNames.add(field.getName())) {
-                    continue;
-                }
-                fields.add(field);
-            }
-        }
-
-        return fields;
     }
 
     private static RelationDef parseRelation(Field field, PersistedRelation relation, String defaultJoinColumn) {
@@ -379,13 +450,11 @@ public final class EntityModel<T, ID> {
             }
             String prefix = relation.prefix().isBlank() ? snake(field.getName()) + "_" : relation.prefix();
             elementConstructor = constructor(elementType);
-            for (Field nested : collectInstanceFields(elementType)) {
-                nested.setAccessible(true);
-                int mod = nested.getModifiers();
-                if (java.lang.reflect.Modifier.isStatic(mod) || java.lang.reflect.Modifier.isTransient(mod) || nested.isSynthetic()) {
+            for (Field nested : instanceFields(elementType)) {
+                if (isIgnoredField(nested)) {
                     continue;
                 }
-                PersistedColumn nestedCol = nested.getAnnotation(PersistedColumn.class);
+                PersistedColumn nestedCol = fieldAnnotations(nested).column();
                 String baseName = nestedCol == null || nestedCol.value().isBlank() ? snake(nested.getName()) : nestedCol.value();
                 int length = nestedCol == null ? 255 : nestedCol.length();
                 objectColumns.add(new RelationColumn(nested, prefix + baseName, nested.getType(), length, varHandle(nested)));
@@ -402,13 +471,14 @@ public final class EntityModel<T, ID> {
 
     private static List<IndexDef> parseIndexes(Class<?> type) {
         List<IndexDef> out = new ArrayList<>();
+        ClassAnnotations classAnnotations = classAnnotations(type);
 
-        PersistedIndex one = type.getAnnotation(PersistedIndex.class);
+        PersistedIndex one = classAnnotations.index();
         if (one != null) {
             out.add(toIndex(one, type.getSimpleName()));
         }
 
-        PersistedIndexes many = type.getAnnotation(PersistedIndexes.class);
+        PersistedIndexes many = classAnnotations.indexes();
         if (many != null) {
             for (PersistedIndex index : many.value()) {
                 out.add(toIndex(index, type.getSimpleName()));
@@ -452,6 +522,15 @@ public final class EntityModel<T, ID> {
     }
 
     private static VarHandle varHandle(Field field) {
+        return VAR_HANDLE_CACHE.computeIfAbsent(field, EntityModel::createVarHandle);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <V> Constructor<V> constructor(Class<?> type) {
+        return (Constructor<V>) CONSTRUCTOR_CACHE.computeIfAbsent(type, EntityModel::createConstructor);
+    }
+
+    private static VarHandle createVarHandle(Field field) {
         try {
             return MethodHandles.privateLookupIn(field.getDeclaringClass(), MethodHandles.lookup()).unreflectVarHandle(field);
         } catch (IllegalAccessException e) {
@@ -460,7 +539,7 @@ public final class EntityModel<T, ID> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <V> Constructor<V> constructor(Class<?> type) {
+    private static <V> Constructor<V> createConstructor(Class<?> type) {
         try {
             Constructor<V> constructor = (Constructor<V>) type.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -563,9 +642,10 @@ public final class EntityModel<T, ID> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public ID idOf(T entity) {
         Object value = readColumnValue(entity, this.idColumn);
-        return this.idType.cast(value);
+        return (ID) wrapType(this.idType).cast(value);
     }
 
     public Column resolveColumn(String fieldOrColumn) {
@@ -573,16 +653,14 @@ public final class EntityModel<T, ID> {
             throw new IllegalArgumentException("Sort field cannot be blank");
         }
 
-        if (matchesColumn(this.idColumn, fieldOrColumn)) {
-            return this.idColumn;
+        Column resolved = this.columnLookup.get(normalizeLookupKey(fieldOrColumn));
+        if (resolved != null) {
+            return resolved;
         }
 
-        Optional<Column> resolved = this.columns.stream()
-                .filter(column -> matchesColumn(column, fieldOrColumn))
-                .findFirst();
-        return resolved.orElseThrow(() -> new IllegalArgumentException(
+        throw new IllegalArgumentException(
                 "Unknown sortable field '" + fieldOrColumn + "' for " + this.entityType.getSimpleName()
-        ));
+        );
     }
 
     public Object readColumnRawValue(T entity, String fieldOrColumn) {
@@ -601,7 +679,7 @@ public final class EntityModel<T, ID> {
 
     public void writeColumnValue(T entity, Column column, Object value) {
         if (column.rootHandle() == null) {
-            column.leafHandle().set(entity, value);
+            setFieldValue(column.leafField(), column.leafHandle(), entity, value);
             return;
         }
 
@@ -612,9 +690,9 @@ public final class EntityModel<T, ID> {
             } catch (Exception e) {
                 throw new RuntimeException("Unable to instantiate embedded object for field " + column.rootField().getName(), e);
             }
-            column.rootHandle().set(entity, embedded);
+            setFieldValue(column.rootField(), column.rootHandle(), entity, embedded);
         }
-        column.leafHandle().set(embedded, value);
+        setFieldValue(column.leafField(), column.leafHandle(), embedded, value);
     }
 
     public Object readRelationField(T entity, RelationDef relation) {
@@ -622,7 +700,7 @@ public final class EntityModel<T, ID> {
     }
 
     public void writeRelationField(T entity, RelationDef relation, Object value) {
-        relation.collectionHandle().set(entity, value);
+        setFieldValue(relation.field(), relation.collectionHandle(), entity, value);
     }
 
     public Object readRelationColumnValue(Object element, RelationColumn column) {
@@ -630,11 +708,31 @@ public final class EntityModel<T, ID> {
     }
 
     public void writeRelationColumnValue(Object element, RelationColumn column, Object value) {
-        column.handle().set(element, value);
+        setFieldValue(column.field(), column.handle(), element, value);
     }
 
     public void writeRankValue(T entity, RankDef rank, int value) {
-        rank.handle().set(entity, value);
+        setFieldValue(rank.field(), rank.handle(), entity, value);
+    }
+
+    private static void setFieldValue(Field field, VarHandle handle, Object target, Object value) {
+        if (java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
+            try {
+                field.set(target, value);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Cannot write final field " + field.getDeclaringClass().getName() + "#" + field.getName(), e);
+            }
+        } else {
+            handle.set(target, value);
+        }
+    }
+
+    private static void warnFinalField(Field field) {
+        if (java.lang.reflect.Modifier.isFinal(field.getModifiers())) {
+            System.err.println("[KashHelper] WARNING: @Persisted* annotation on final field '"
+                    + field.getDeclaringClass().getSimpleName() + "#" + field.getName()
+                    + "' — final persisted fields are not recommended (uses slower Field.set fallback). Consider removing 'final'.");
+        }
     }
 
     public List<BlobDef> blobs() {
@@ -684,11 +782,123 @@ public final class EntityModel<T, ID> {
 
     public Optional<RankDef> rank(String name) {
         if (name == null || name.isBlank()) return Optional.empty();
-        return this.ranks.stream().filter(r -> r.name().equalsIgnoreCase(name)).findFirst();
+        return Optional.ofNullable(this.rankLookup.get(normalizeLookupKey(name)));
     }
 
     public List<RankDef> ranksMarkedForDeserialize() {
-        return this.ranks.stream().filter(RankDef::loadOnDeserialize).toList();
+        return this.ranksMarkedForDeserialize;
+    }
+
+    private static List<Field> instanceFields(Class<?> type) {
+        return INSTANCE_FIELD_CACHE.computeIfAbsent(type, EntityModel::collectInstanceFields);
+    }
+
+    private static List<Field> collectInstanceFields(Class<?> type) {
+        List<Field> fields = new ArrayList<>();
+        Set<String> seenNames = new HashSet<>();
+
+        for (Class<?> cursor = type; cursor != null && cursor != Object.class; cursor = cursor.getSuperclass()) {
+            for (Field field : cursor.getDeclaredFields()) {
+                if (!seenNames.add(field.getName())) {
+                    continue;
+                }
+                field.setAccessible(true);
+                fields.add(field);
+            }
+        }
+
+        return List.copyOf(fields);
+    }
+
+    private static ClassAnnotations classAnnotations(Class<?> type) {
+        return CLASS_ANNOTATION_CACHE.computeIfAbsent(type, EntityModel::readClassAnnotations);
+    }
+
+    private static ClassAnnotations readClassAnnotations(Class<?> type) {
+        return new ClassAnnotations(
+                type.getAnnotation(PersistedDefaultId.class),
+                type.getAnnotation(PersistedEntity.class),
+                type.getAnnotation(PersistedJson.class),
+                type.getAnnotation(PersistedIndex.class),
+                type.getAnnotation(PersistedIndexes.class)
+        );
+    }
+
+    private static FieldAnnotations fieldAnnotations(Field field) {
+        return FIELD_ANNOTATION_CACHE.computeIfAbsent(field, EntityModel::readFieldAnnotations);
+    }
+
+    private static FieldAnnotations readFieldAnnotations(Field field) {
+        return new FieldAnnotations(
+                annotation(field, PersistedId.class),
+                annotation(field, PersistedRelation.class),
+                annotation(field, PersistedEmbedded.class),
+                annotation(field, PersistedColumn.class),
+                annotation(field, PersistedBlob.class),
+                annotation(field, PersistedRank.class)
+        );
+    }
+
+    private static <A extends java.lang.annotation.Annotation> A annotation(AnnotatedElement element, Class<A> annotationType) {
+        return element.getAnnotation(annotationType);
+    }
+
+    private static boolean isIgnoredField(Field field) {
+        int modifiers = field.getModifiers();
+        return java.lang.reflect.Modifier.isStatic(modifiers)
+                || java.lang.reflect.Modifier.isTransient(modifiers)
+                || field.isSynthetic();
+    }
+
+    private static Map<String, Column> buildColumnLookup(Column idColumn, List<Column> columns) {
+        Map<String, Column> lookup = new LinkedHashMap<>();
+        addColumnLookup(lookup, idColumn);
+        for (Column column : columns) {
+            addColumnLookup(lookup, column);
+        }
+        return Map.copyOf(lookup);
+    }
+
+    private static void addColumnLookup(Map<String, Column> lookup, Column column) {
+        lookup.putIfAbsent(normalizeLookupKey(column.name()), column);
+        lookup.putIfAbsent(normalizeLookupKey(column.leafField().getName()), column);
+    }
+
+    private static Map<String, RankDef> buildRankLookup(List<RankDef> ranks) {
+        Map<String, RankDef> lookup = new HashMap<>();
+        for (RankDef rank : ranks) {
+            lookup.putIfAbsent(normalizeLookupKey(rank.name()), rank);
+        }
+        return Map.copyOf(lookup);
+    }
+
+    private static String normalizeLookupKey(String value) {
+        return value.toLowerCase(Locale.ROOT);
+    }
+
+    private static void validateIdType(Class<?> entityType, Class<?> requestedIdType, Class<?> actualIdType) {
+        Class<?> left = wrapType(requestedIdType);
+        Class<?> right = wrapType(actualIdType);
+        if (!left.isAssignableFrom(right)) {
+            throw new IllegalArgumentException(
+                    "Invalid id type for " + entityType.getName() + ": expected " + actualIdType.getName() + " but got " + requestedIdType.getName()
+            );
+        }
+    }
+
+    public static Class<?> wrapType(Class<?> type) {
+        if (!type.isPrimitive()) {
+            return type;
+        }
+        if (type == boolean.class) return Boolean.class;
+        if (type == byte.class) return Byte.class;
+        if (type == short.class) return Short.class;
+        if (type == int.class) return Integer.class;
+        if (type == long.class) return Long.class;
+        if (type == float.class) return Float.class;
+        if (type == double.class) return Double.class;
+        if (type == char.class) return Character.class;
+        return type;
     }
 
     /**
@@ -712,7 +922,7 @@ public final class EntityModel<T, ID> {
             }
 
             if (allDefault) {
-                embedded.handle().set(entity, null);
+                setFieldValue(embedded.field(), embedded.handle(), entity, null);
             }
         }
     }

@@ -1,6 +1,7 @@
 package fr.ibrakash.helper.jda.embed;
 
 import fr.ibrakash.helper.jda.configuration.readers.JdaSystemLocale;
+import fr.ibrakash.helper.persistence.entity.PersistedColumn;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
@@ -9,18 +10,15 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class PersistentPrivateEmbed extends PersistentEmbed {
 
-    private final long constructorUserId;
+    @PersistedColumn("user-id")
+    protected final long userId;
 
     protected PersistentPrivateEmbed() {
         this(-1L);
     }
 
     protected PersistentPrivateEmbed(long userId) {
-        this.constructorUserId = userId;
-    }
-
-    public long userId() {
-        return this.constructorUserId;
+        this.userId = userId;
     }
 
     public String dmDisabledMessagePath() {
@@ -49,12 +47,11 @@ public abstract class PersistentPrivateEmbed extends PersistentEmbed {
 
     @Override
     protected CompletableFuture<MessageChannel> resolveChannel() {
-        long userId = userId();
-        if (userId <= 0L) {
+        if (this.userId <= 0L) {
             return CompletableFuture.failedFuture(
                     new IllegalStateException("PersistentPrivateEmbed requires a valid user id"));
         }
-        return requireAddon().getJda().retrieveUserById(userId)
+        return requireAddon().getJda().retrieveUserById(this.userId)
                 .submit()
                 .thenCompose(user -> user.openPrivateChannel().submit())
                 .thenApply(channel -> channel);
@@ -67,5 +64,9 @@ public abstract class PersistentPrivateEmbed extends PersistentEmbed {
             return CompletableFuture.completedFuture(null);
         }
         return CompletableFuture.failedFuture(error);
+    }
+
+    public long getUserId() {
+        return userId;
     }
 }

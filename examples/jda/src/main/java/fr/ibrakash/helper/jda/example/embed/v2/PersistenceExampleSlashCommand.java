@@ -2,6 +2,7 @@ package fr.ibrakash.helper.jda.example.embed.v2;
 
 import fr.ibrakash.helper.jda.command.JdaSlashCommand;
 import fr.ibrakash.helper.jda.example.JdaExample;
+import fr.ibrakash.helper.jda.logging.JdaBotLogger;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -26,13 +27,20 @@ public class PersistenceExampleSlashCommand implements JdaSlashCommand {
 
         event.deferReply(true).queue(hook -> {
             PersistenceExample embed = this.addon.requirePersistenceExampleRepository().getOrCreate(channelId, ownerId);
+            long previousMessageId = embed.messageId();
             embed.reload().whenComplete((ignored, error) -> {
                 if (error != null) {
                     hook.editOriginal("Unable to send the persistent embed: " + error.getMessage()).queue();
                     return;
                 }
-                this.addon.requirePersistenceExampleRepository().save(embed);
-                hook.editOriginal("Persistent embed posted or updated in <#" + channelId + ">.").queue();
+
+                try {
+                    this.addon.requirePersistenceExampleRepository().save(embed, previousMessageId);
+                    hook.editOriginal("Persistent embed posted or updated in <#" + channelId + ">.").queue();
+                } catch (Exception exception) {
+                    JdaBotLogger.error("Unable to save PersistenceExample after slash command", exception);
+                    hook.editOriginal("Unable to save the persistent embed: " + exception.getMessage()).queue();
+                }
             });
         });
     }

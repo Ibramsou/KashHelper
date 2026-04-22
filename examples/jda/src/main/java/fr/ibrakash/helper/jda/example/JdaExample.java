@@ -79,6 +79,14 @@ public class JdaExample extends KashJdaAddon<ExampleJdaConfig, ExampleJdaEmbedLo
     }
 
     @Override
+    public void onReload() {
+        JdaBotLogger.info("JdaExample reload triggered — re-initializing persistence repository.");
+        if (this.persistenceExampleRepository != null) {
+            this.persistenceExampleRepository.reload();
+        }
+    }
+
+    @Override
     public void onShutdown() {
         if (this.persistenceExampleRepository != null) {
             this.persistenceExampleRepository.close();

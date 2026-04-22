@@ -4,6 +4,7 @@ import fr.ibrakash.helper.configuration.ConfigReference;
 import fr.ibrakash.helper.configuration.ConfigurationLoaderType;
 import fr.ibrakash.helper.jda.command.JdaSlashCommand;
 import fr.ibrakash.helper.jda.command.JdaSlashCommandManager;
+import fr.ibrakash.helper.jda.command.ReloadSlashCommand;
 import fr.ibrakash.helper.jda.configuration.readers.JdaEmbedConfigurationLocale;
 import fr.ibrakash.helper.jda.console.JdaConsoleManager;
 import fr.ibrakash.helper.jda.configuration.readers.JdaSystemLocale;
@@ -103,14 +104,12 @@ public abstract class KashJdaAddon<C extends KashJdaConfig, EMB extends JdaEmbed
                     LoggerFactory.getLogger("UncaughtException").error("Exception in thread {}", t.getName(), e));
         }
 
-        // 5. Register slash commands
-        List<JdaSlashCommand> commands = this.slashCommands();
-        if (!commands.isEmpty()) {
-            this.slashCommandManager = new JdaSlashCommandManager();
-            commands.forEach(this.slashCommandManager::register);
-            String devGuildId = this.configReference.get().getDevGuildId();
-            this.slashCommandManager.registerAll(jda, devGuildId);
-        }
+        // 5. Register slash commands — reload command is always present
+        this.slashCommandManager = new JdaSlashCommandManager();
+        this.slashCommandManager.register(new ReloadSlashCommand(this));
+        this.slashCommands().forEach(this.slashCommandManager::register);
+        String devGuildId = this.configReference.get().getDevGuildId();
+        this.slashCommandManager.registerAll(jda, devGuildId);
 
         // 6. Console
         if (enableConsole()) {
@@ -146,6 +145,30 @@ public abstract class KashJdaAddon<C extends KashJdaConfig, EMB extends JdaEmbed
     public abstract EMB createEmbedLocale();
 
     public abstract MSG createSystemLocale();
+
+    /**
+     * Called after all configurations and locales have been reloaded.
+     * Implement this to react to a reload: re-initialize managers, clear caches, etc.
+     */
+    public abstract void onReload();
+
+    /**
+     * Additional {@link ConfigReference} instances to reload alongside the primary config.
+     *
+     * <p>Override this to include any extra config files managed by this addon.
+     * Create the references as fields (e.g. in {@link #onReady(JDA)}) and return them here.
+     *
+     * <pre>{@code
+     * private ConfigReference<MyExtraConfig> extraConfig;
+     *
+     * public List<ConfigReference<?>> additionalConfigurations() {
+     *     return List.of(extraConfig);
+     * }
+     * }</pre>
+     */
+    public List<ConfigReference<?>> additionalConfigurations() {
+        return Collections.emptyList();
+    }
 
     public EMB getEmbedLocale() {
         return this.embedLocale;
@@ -201,6 +224,28 @@ public abstract class KashJdaAddon<C extends KashJdaConfig, EMB extends JdaEmbed
      * Override to save data, close connections, etc.
      */
     public void onShutdown() {}
+
+    // -------------------------------------------------------------------------
+    // Reload
+    // -------------------------------------------------------------------------
+
+    /**
+     * Reloads all configurations, locales, and additional config references,
+     * then calls {@link #onReload()}.
+     *
+     * <p>This is the method invoked by the built-in {@code /reload} slash command.
+     */
+    public final void reloadAllConfigurations() {
+        JdaBotLogger.info("Reloading all configurations...");
+        this.configReference.reload();
+        this.embedLocale.reload();
+        this.systemLocale.reload();
+        this.additionalConfigurations().stream()
+                .filter(ref -> ref != null)
+                .forEach(ConfigReference::reload);
+        this.onReload();
+        JdaBotLogger.info("All configurations reloaded.");
+    }
 
     /**
      * Register additional console commands.

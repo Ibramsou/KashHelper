@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PersistenceExampleRepository extends DatabaseRepository {
 
     private final Map<Long, PersistenceExample> cache = new ConcurrentHashMap<>();
-    private final Map<Long, PersistenceExample> runtimeByChannel = new ConcurrentHashMap<>();
 
     public PersistenceExampleRepository(JdaExample addon) {
         super(addon, addon.getConfig().getDatabase());
@@ -18,7 +17,6 @@ public class PersistenceExampleRepository extends DatabaseRepository {
 
     public void reload() {
         this.cache.clear();
-        this.runtimeByChannel.clear();
         this.loadEntireData(this.cache, PersistenceExample.class);
     }
 
@@ -27,7 +25,8 @@ public class PersistenceExampleRepository extends DatabaseRepository {
     }
 
     public PersistenceExample getOrCreate(long channelId, long ownerId) {
-        return this.runtimeByChannel.computeIfAbsent(channelId, ignored -> this.create(channelId, ownerId));
+        return this.findByChannelId(channelId)
+                .orElseGet(() -> this.create(channelId, ownerId));
     }
 
     public PersistenceExample create(long channelId, long ownerId) {
@@ -35,18 +34,28 @@ public class PersistenceExampleRepository extends DatabaseRepository {
     }
 
     public void save(PersistenceExample embed) {
-        long id = embed.id();
-        if (embed.initialChannelId() > 0L) {
-            this.runtimeByChannel.putIfAbsent(embed.initialChannelId(), embed);
+        this.save(embed, embed.id());
+    }
+
+    public void save(PersistenceExample embed, long previousMessageId) {
+        long messageId = embed.id();
+        if (messageId <= 0L) {
+            throw new IllegalStateException("PersistenceExample requires a message id before save.");
         }
-        if (id > 0L) {
-            this.cache.put(id, embed);
+
+        if (previousMessageId > 0L && previousMessageId != messageId) {
+            this.cache.remove(previousMessageId);
+            this.getStore(PersistenceExample.class, Long.class).delete(previousMessageId);
         }
+
+        this.removeStaleEntry(embed, messageId);
+        this.cache.put(messageId, embed);
         this.getStore(PersistenceExample.class, Long.class).save(embed);
     }
 
     public void delete(PersistenceExample embed) {
         long id = embed.id();
+        this.removeStaleEntry(embed, id);
         this.cache.remove(id);
         if (id > 0L) {
             this.getStore(PersistenceExample.class, Long.class).delete(id);
@@ -56,6 +65,16 @@ public class PersistenceExampleRepository extends DatabaseRepository {
     @Override
     public void saveAll() {
         this.flushEntireData(this.cache, PersistenceExample.class);
+    }
+
+    private Optional<PersistenceExample> findByChannelId(long channelId) {
+        return this.cache.values().stream()
+                .filter(embed -> embed.getChannelId() == channelId)
+                .findFirst();
+    }
+
+    private void removeStaleEntry(PersistenceExample embed, long messageId) {
+        this.cache.entrySet().removeIf(entry -> entry.getValue() == embed && entry.getKey() != messageId);
     }
 }
 

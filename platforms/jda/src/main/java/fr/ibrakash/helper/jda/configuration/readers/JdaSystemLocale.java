@@ -25,13 +25,15 @@ public abstract class JdaSystemLocale extends JdaConfigurationLocale {
     public static final String ERROR_OCCURRED = "error-occurred";
     public static final String COMMAND_ONLY_GUILD = "command-only-guild";
     public static final String COMMAND_ONLY_DM = "command-only-dm";
+    public static final String CONFIG_RELOADED = "config-reloaded";
 
     private static final Map<String, String> DEFAULT_MESSAGES = Map.ofEntries(
             Map.entry(NO_PERMISSION, "You do not have permission to perform this action."),
             Map.entry(DIRECT_MESSAGE_DISABLED, "Please enable your direct messages to receive this message."),
             Map.entry(ERROR_OCCURRED, "An unexpected error occurred. Please try again later."),
             Map.entry(COMMAND_ONLY_GUILD, "This command can only be used in a server."),
-            Map.entry(COMMAND_ONLY_DM, "This command can only be used in direct messages.")
+            Map.entry(COMMAND_ONLY_DM, "This command can only be used in direct messages."),
+            Map.entry(CONFIG_RELOADED, "✅ All configurations have been reloaded.")
     );
 
     protected JdaSystemLocale(KashAddon<?> addon) {

@@ -142,5 +142,30 @@ Average: **%score%%** | Members estimation: **%members_estimation%**</field>
       <color>#57F287</color>
     </container>
   </message>
+
+  <message id="persistence-example">
+    <container>
+      <text kind="title">Persistent embed example</text>
+      <text>This message is saved in the persistence layer and reloaded with its interactions.</text>
+
+      <field name="Owner" inline="true">%owner_id%</field>
+      <field name="Channel" inline="true">%channel_id%</field>
+      <field name="Period" inline="true">%current_period%</field>
+      <field name="Score" inline="true">%current_score%</field>
+      <field name="Refresh count" inline="true">%refresh_count%</field>
+      <field name="Stored message id" inline="true">%stored_message_id%</field>
+
+      <field name="Latest history">%latest_history%</field>
+
+      <footer text="History entries: %history_size% | Last action: %last_action%"/>
+      <color>#5865F2</color>
+
+      <actions>
+        <button id="refresh_state" style="primary">🔄 Refresh</button>
+        <button id="cycle_period" style="secondary">📆 Next period</button>
+        <button id="show_state" style="success">📋 State</button>
+      </actions>
+    </container>
+  </message>
 </messages>
 
